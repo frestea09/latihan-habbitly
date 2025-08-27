@@ -6,11 +6,13 @@ import { useRouter } from 'next/navigation';
 import { initialHabits, initialLogs } from '@/lib/data';
 import type { Habit, HabitLog, HabitWithLogs, TimeRange } from '@/lib/types';
 import { SidebarProvider, Sidebar, SidebarInset, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger } from '@/components/ui/sidebar';
-import { LayoutDashboard, BarChart3, Settings, ListTodo } from 'lucide-react';
+import { LayoutDashboard, BarChart3, Settings, ListTodo, Download } from 'lucide-react';
 import Footer from '@/components/organisms/footer';
 import ReportCard from '@/components/organisms/report-card';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from '@/components/ui/button';
+import { getDatesInRange } from '@/lib/utils';
 
 export default function ReportsPage() {
   const [habits, setHabits] = useState<Habit[]>(initialHabits);
@@ -66,6 +68,40 @@ export default function ReportsPage() {
       description: `Progres Anda untuk tanggal ${date} telah disimpan.`,
     });
   };
+
+  const handleDownload = () => {
+    const dateList = getDatesInRange(timeRange);
+    
+    const dataToExport = habits.flatMap(habit => {
+        return dateList.map(date => {
+            const log = logs.find(l => l.habitId === habit.id && l.date === date);
+            return {
+                'Nama Kebiasaan': habit.name,
+                'Kategori': habit.category,
+                'Tanggal': date,
+                'Status': log ? (log.completed ? 'Selesai' : 'Terlewat') : 'Belum Dicatat',
+                'Jurnal/Catatan': log ? (log.completed ? log.journal : log.reasonForMiss) || '' : ''
+            };
+        });
+    });
+
+    const csvContent = "data:text/csv;charset=utf-8," 
+        + [Object.keys(dataToExport[0]), ...dataToExport.map(item => Object.values(item))].map(e => e.join(",")).join("\n");
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    const timeRangeTextMap: Record<TimeRange, string> = { weekly: '7_Hari_Terakhir', monthly: 'Bulan_Ini', yearly: 'Tahun_Ini' };
+    link.setAttribute("download", `Laporan_Kebiasaan_${timeRangeTextMap[timeRange]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast({
+        title: "Laporan Diunduh!",
+        description: `Laporan kebiasaan untuk ${timeRangeTextMap[timeRange].replace(/_/g, ' ')} telah berhasil diunduh.`
+    });
+  }
+
 
   const habitsWithLogs: HabitWithLogs[] = habits.map(habit => ({
     ...habit,
@@ -130,13 +166,20 @@ export default function ReportsPage() {
                 <p className="text-muted-foreground text-lg">Analisis performa kebiasaan Anda. Anda bisa mengubah log jika ada kesalahan input.</p>
             </div>
 
-            <Tabs defaultValue="weekly" onValueChange={(value) => setTimeRange(value as TimeRange)} className="w-full mb-6">
-                <TabsList className="grid w-full grid-cols-3 max-w-md">
-                    <TabsTrigger value="weekly">7 Hari Terakhir</TabsTrigger>
-                    <TabsTrigger value="monthly">Bulan Ini</TabsTrigger>
-                    <TabsTrigger value="yearly">Tahun Ini</TabsTrigger>
-                </TabsList>
-            </Tabs>
+            <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+                <Tabs defaultValue="weekly" onValueChange={(value) => setTimeRange(value as TimeRange)} className="w-full md:w-auto">
+                    <TabsList className="grid w-full grid-cols-3 max-w-md">
+                        <TabsTrigger value="weekly">7 Hari Terakhir</TabsTrigger>
+                        <TabsTrigger value="monthly">Bulan Ini</TabsTrigger>
+                        <TabsTrigger value="yearly">Tahun Ini</TabsTrigger>
+                    </TabsList>
+                </Tabs>
+                <Button onClick={handleDownload}>
+                    <Download className="mr-2 h-4 w-4" />
+                    Unduh Laporan
+                </Button>
+            </div>
+
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {habitsWithLogs.map(habit => (
