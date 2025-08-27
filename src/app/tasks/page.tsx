@@ -4,7 +4,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { SidebarProvider, Sidebar, SidebarInset, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger } from '@/components/ui/sidebar';
-import { LayoutDashboard, BarChart3, Settings, ListTodo, Plus, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
+import { LayoutDashboard, BarChart3, Settings, ListTodo, Plus, Trash2, ArrowUp, ArrowDown, ChevronDown, Wallet, BookOpen } from 'lucide-react';
 import Footer from '@/components/organisms/footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,6 +20,8 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+
 
 type Task = {
   id: string;
@@ -36,6 +38,7 @@ export default function TasksPage() {
   const [newTaskDescription, setNewTaskDescription] = useState('');
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [movedTaskId, setMovedTaskId] = useState<string | null>(null);
+  const [isActivityOpen, setIsActivityOpen] = useState(true);
 
   useEffect(() => {
     const loggedIn = sessionStorage.getItem('isLoggedIn');
@@ -126,22 +129,49 @@ export default function TasksPage() {
       <Sidebar>
         <SidebarContent className="p-4 overflow-y-auto">
           <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton href="/">
-                <LayoutDashboard />
-                <span>Lacak Hari Ini</span>
+            <Collapsible open={isActivityOpen} onOpenChange={setIsActivityOpen}>
+              <CollapsibleTrigger className="w-full">
+                <div className="flex items-center justify-between p-2 rounded-md hover:bg-sidebar-accent">
+                    <div className="flex items-center gap-4">
+                        <LayoutDashboard />
+                        <span className="font-semibold">Aktivitas Harian</span>
+                    </div>
+                    <ChevronDown className={cn("h-5 w-5 transition-transform", isActivityOpen && "rotate-180")} />
+                </div>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="pl-6 mt-2 space-y-1">
+                  <SidebarMenuItem>
+                    <SidebarMenuButton href="/" variant="outline" size="sm">
+                      <LayoutDashboard />
+                      <span>Lacak Hari Ini</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton href="/tasks" variant="outline" size="sm" isActive>
+                      <ListTodo />
+                      <span>Tugas Harian</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton href="/reports" variant="outline" size="sm">
+                      <BarChart3 />
+                      <span>Laporan</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+             <SidebarMenuItem>
+              <SidebarMenuButton href="/finance">
+                <Wallet />
+                <span>Keuangan</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton href="/tasks" isActive>
-                <ListTodo />
-                <span>Tugas Harian</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton href="/reports">
-                <BarChart3 />
-                <span>Laporan</span>
+              <SidebarMenuButton href="/learning">
+                <BookOpen />
+                <span>Progres Belajar</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
@@ -162,7 +192,9 @@ export default function TasksPage() {
                         <SidebarTrigger className="md:hidden" />
                         <h1 className="text-xl font-bold">Tugas Harian</h1>
                     </div>
-                     <SidebarTrigger className="hidden md:flex" />
+                     <div className="hidden md:flex items-center gap-4">
+                        <SidebarTrigger />
+                    </div>
                 </div>
             </div>
            </header>

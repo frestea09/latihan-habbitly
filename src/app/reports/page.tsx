@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { initialHabits, initialLogs } from '@/lib/data';
 import type { Habit, HabitLog, HabitWithLogs, TimeRange } from '@/lib/types';
 import { SidebarProvider, Sidebar, SidebarInset, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger } from '@/components/ui/sidebar';
-import { LayoutDashboard, BarChart3, Settings, ListTodo, Download, Printer } from 'lucide-react';
+import { LayoutDashboard, BarChart3, Settings, ListTodo, Download, Printer, ChevronDown, Wallet, BookOpen } from 'lucide-react';
 import Footer from '@/components/organisms/footer';
 import ReportCard from '@/components/organisms/report-card';
 import { useToast } from '@/hooks/use-toast';
@@ -14,6 +14,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from '@/components/ui/button';
 import { getDatesInRange } from '@/lib/utils';
 import PrintPreviewModal from '@/components/organisms/print-preview-modal';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { cn } from '@/lib/utils';
+
 
 export default function ReportsPage() {
   const [habits, setHabits] = useState<Habit[]>(initialHabits);
@@ -23,6 +26,7 @@ export default function ReportsPage() {
   const { toast } = useToast();
   const [timeRange, setTimeRange] = useState<TimeRange>('weekly');
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
+  const [isActivityOpen, setIsActivityOpen] = useState(true);
 
   useEffect(() => {
     const loggedIn = sessionStorage.getItem('isLoggedIn');
@@ -132,22 +136,49 @@ export default function ReportsPage() {
       <Sidebar>
         <SidebarContent className="p-4 overflow-y-auto">
           <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton href="/">
-                <LayoutDashboard />
-                <span>Lacak Hari Ini</span>
+            <Collapsible open={isActivityOpen} onOpenChange={setIsActivityOpen}>
+              <CollapsibleTrigger className="w-full">
+                <div className="flex items-center justify-between p-2 rounded-md hover:bg-sidebar-accent">
+                    <div className="flex items-center gap-4">
+                        <LayoutDashboard />
+                        <span className="font-semibold">Aktivitas Harian</span>
+                    </div>
+                    <ChevronDown className={cn("h-5 w-5 transition-transform", isActivityOpen && "rotate-180")} />
+                </div>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="pl-6 mt-2 space-y-1">
+                  <SidebarMenuItem>
+                    <SidebarMenuButton href="/" variant="outline" size="sm">
+                      <LayoutDashboard />
+                      <span>Lacak Hari Ini</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton href="/tasks" variant="outline" size="sm">
+                      <ListTodo />
+                      <span>Tugas Harian</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton href="/reports" variant="outline" size="sm" isActive>
+                      <BarChart3 />
+                      <span>Laporan</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+             <SidebarMenuItem>
+              <SidebarMenuButton href="/finance">
+                <Wallet />
+                <span>Keuangan</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton href="/tasks">
-                <ListTodo />
-                <span>Tugas Harian</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton href="/reports" isActive>
-                <BarChart3 />
-                <span>Laporan</span>
+              <SidebarMenuButton href="/learning">
+                <BookOpen />
+                <span>Progres Belajar</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
@@ -168,6 +199,9 @@ export default function ReportsPage() {
                         <SidebarTrigger className="md:hidden" />
                         <h1 className="text-xl font-bold">Laporan Kebiasaan</h1>
                     </div>
+                     <div className="hidden md:flex items-center gap-4">
+                        <SidebarTrigger />
+                    </div>
                 </div>
             </div>
            </header>
@@ -177,23 +211,22 @@ export default function ReportsPage() {
                     <h2 className="text-2xl font-bold">Ringkasan Kinerja</h2>
                     <p className="text-muted-foreground text-lg">Analisis performa kebiasaan Anda.</p>
                 </div>
-                <SidebarTrigger className="hidden md:flex" />
             </div>
 
             <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
                 <Tabs defaultValue="weekly" onValueChange={(value) => setTimeRange(value as TimeRange)} className="w-full md:w-auto">
-                    <TabsList className="grid w-full grid-cols-3 md:max-w-md">
+                    <TabsList className="grid w-full grid-cols-3 md:w-auto">
                         <TabsTrigger value="weekly">7 Hari Terakhir</TabsTrigger>
                         <TabsTrigger value="monthly">Bulan Ini</TabsTrigger>
                         <TabsTrigger value="yearly">Tahun Ini</TabsTrigger>
                     </TabsList>
                 </Tabs>
                 <div className="flex items-center gap-2 w-full md:w-auto">
-                    <Button onClick={handleDownload} variant="outline" className="w-1/2 md:w-auto">
+                    <Button onClick={handleDownload} variant="outline" className="w-full sm:w-auto flex-1 sm:flex-none">
                         <Download className="mr-2 h-4 w-4" />
                         Unduh CSV
                     </Button>
-                    <Button onClick={() => setIsPrintModalOpen(true)} className="w-1/2 md:w-auto">
+                    <Button onClick={() => setIsPrintModalOpen(true)} className="w-full sm:w-auto flex-1 sm:flex-none">
                       <Printer className="mr-2 h-4 w-4" />
                       Cetak Laporan
                     </Button>

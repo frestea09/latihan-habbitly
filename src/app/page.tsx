@@ -8,10 +8,12 @@ import type { Habit, HabitLog, HabitCategory } from '@/lib/types';
 import Header from '@/components/organisms/header';
 import HabitList from '@/components/organisms/habit-list';
 import { useToast } from "@/hooks/use-toast";
-import { SidebarProvider, Sidebar, SidebarInset, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
-import { LayoutDashboard, BarChart3, Settings, Clock, List, ListTodo } from 'lucide-react';
+import { SidebarProvider, Sidebar, SidebarInset, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarGroup, SidebarGroupLabel, SidebarGroupContent } from '@/components/ui/sidebar';
+import { LayoutDashboard, BarChart3, Settings, Clock, List, ListTodo, ChevronDown, Wallet, BookOpen } from 'lucide-react';
 import Footer from '@/components/organisms/footer';
 import { Button } from '@/components/ui/button';
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
+import { cn } from '@/lib/utils';
 
 type ViewMode = 'focus' | 'all';
 
@@ -46,6 +48,7 @@ export default function Home() {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('focus');
+  const [isActivityOpen, setIsActivityOpen] = useState(true);
 
   useEffect(() => {
     const loggedIn = sessionStorage.getItem('isLoggedIn');
@@ -122,22 +125,49 @@ export default function Home() {
       <Sidebar>
         <SidebarContent className="p-4">
           <SidebarMenu>
+            <Collapsible open={isActivityOpen} onOpenChange={setIsActivityOpen}>
+              <CollapsibleTrigger className="w-full">
+                <div className="flex items-center justify-between p-2 rounded-md hover:bg-sidebar-accent">
+                    <div className="flex items-center gap-4">
+                        <LayoutDashboard />
+                        <span className="font-semibold">Aktivitas Harian</span>
+                    </div>
+                    <ChevronDown className={cn("h-5 w-5 transition-transform", isActivityOpen && "rotate-180")} />
+                </div>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="pl-6 mt-2 space-y-1">
+                  <SidebarMenuItem>
+                    <SidebarMenuButton href="/" variant="outline" size="sm" isActive>
+                      <LayoutDashboard />
+                      <span>Lacak Hari Ini</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton href="/tasks" variant="outline" size="sm">
+                      <ListTodo />
+                      <span>Tugas Harian</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton href="/reports" variant="outline" size="sm">
+                      <BarChart3 />
+                      <span>Laporan</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
             <SidebarMenuItem>
-              <SidebarMenuButton href="/" isActive>
-                <LayoutDashboard />
-                <span>Lacak Hari Ini</span>
+              <SidebarMenuButton href="/finance">
+                <Wallet />
+                <span>Keuangan</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
-             <SidebarMenuItem>
-              <SidebarMenuButton href="/tasks">
-                <ListTodo />
-                <span>Tugas Harian</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton href="/reports">
-                <BarChart3 />
-                <span>Laporan</span>
+              <SidebarMenuButton href="/learning">
+                <BookOpen />
+                <span>Progres Belajar</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
