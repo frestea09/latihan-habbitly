@@ -4,17 +4,27 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { SidebarProvider, Sidebar, SidebarInset, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger } from '@/components/ui/sidebar';
-import { LayoutDashboard, BarChart3, Settings, ListTodo, Plus, Trash2 } from 'lucide-react';
+import { LayoutDashboard, BarChart3, Settings, ListTodo, Plus, Trash2, Edit } from 'lucide-react';
 import Footer from '@/components/organisms/footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogClose,
+} from '@/components/ui/dialog';
 
 type Task = {
   id: string;
-  text: string;
+  title: string;
+  description?: string;
   completed: boolean;
 };
 
@@ -22,7 +32,9 @@ export default function TasksPage() {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [newTask, setNewTask] = useState('');
+  const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [newTaskDescription, setNewTaskDescription] = useState('');
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
 
   useEffect(() => {
     const loggedIn = sessionStorage.getItem('isLoggedIn');
@@ -35,14 +47,26 @@ export default function TasksPage() {
 
   const handleAddTask = (e: React.FormEvent) => {
     e.preventDefault();
-    if (newTask.trim() === '') return;
+    if (newTaskTitle.trim() === '') return;
     const task: Task = {
       id: `task-${Date.now()}`,
-      text: newTask.trim(),
+      title: newTaskTitle.trim(),
+      description: newTaskDescription.trim(),
       completed: false,
     };
     setTasks(prev => [task, ...prev]);
-    setNewTask('');
+    setNewTaskTitle('');
+    setNewTaskDescription('');
+  };
+
+  const handleUpdateTask = () => {
+    if (!editingTask) return;
+    setTasks(prev =>
+      prev.map(task =>
+        task.id === editingTask.id ? editingTask : task
+      )
+    );
+    setEditingTask(null);
   };
 
   const handleToggleTask = (taskId: string) => {
@@ -55,6 +79,7 @@ export default function TasksPage() {
 
   const handleDeleteTask = (taskId: string) => {
     setTasks(prev => prev.filter(task => task.id !== taskId));
+    setEditingTask(null);
   };
   
   if (!isAuthenticated) {
@@ -116,21 +141,39 @@ export default function TasksPage() {
             <Card>
                 <CardHeader>
                     <CardTitle>Buat Daftar Tugas Hari Ini</CardTitle>
-                    <p className="text-muted-foreground">Tambahkan pekerjaan atau kegiatan yang perlu Anda selesaikan hari ini.</p>
+                    <p className="text-muted-foreground">Tambahkan pekerjaan dengan judul dan deskripsi (opsional) yang perlu Anda selesaikan hari ini.</p>
                 </CardHeader>
                 <CardContent>
-                    <form onSubmit={handleAddTask} className="flex items-center gap-2 mb-6">
-                        <Input 
-                            type="text"
-                            value={newTask}
-                            onChange={(e) => setNewTask(e.target.value)}
-                            placeholder="misal: Membayar tagihan listrik"
-                            className="h-11 text-base"
-                        />
-                        <Button type="submit" className="h-11">
-                            <Plus className="mr-2 h-4 w-4"/>
-                            Tambah
-                        </Button>
+                    <form onSubmit={handleAddTask} className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+                        <div className="md:col-span-2 space-y-2">
+                             <label htmlFor="task-title" className="text-sm font-medium">Judul Tugas</label>
+                             <Input 
+                                id="task-title"
+                                type="text"
+                                value={newTaskTitle}
+                                onChange={(e) => setNewTaskTitle(e.target.value)}
+                                placeholder="misal: Bayar tagihan"
+                                className="h-11 text-base"
+                                required
+                            />
+                        </div>
+                       <div className="md:col-span-2 space-y-2">
+                            <label htmlFor="task-desc" className="text-sm font-medium">Deskripsi (Opsional)</label>
+                            <Input 
+                                id="task-desc"
+                                type="text"
+                                value={newTaskDescription}
+                                onChange={(e) => setNewTaskDescription(e.target.value)}
+                                placeholder="misal: lewat m-banking"
+                                className="h-11 text-base"
+                            />
+                        </div>
+                        <div className="md:col-span-1 flex items-end">
+                            <Button type="submit" className="h-11 w-full">
+                                <Plus className="mr-2 h-4 w-4"/>
+                                Tambah
+                            </Button>
+                        </div>
                     </form>
 
                     <div className="space-y-6">
@@ -139,12 +182,12 @@ export default function TasksPage() {
                             {pendingTasks.length > 0 ? (
                                 <ul className="space-y-3">
                                     {pendingTasks.map(task => (
-                                        <li key={task.id} className="flex items-center gap-3 p-3 bg-background rounded-md border">
-                                            <Checkbox id={`task-${task.id}`} onCheckedChange={() => handleToggleTask(task.id)} />
-                                            <label htmlFor={`task-${task.id}`} className="flex-grow text-base">{task.text}</label>
-                                            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive h-8 w-8" onClick={() => handleDeleteTask(task.id)}>
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
+                                        <li key={task.id} className="flex items-start gap-3 p-3 bg-background rounded-md border">
+                                            <Checkbox id={`task-${task.id}`} className="mt-1" onCheckedChange={() => handleToggleTask(task.id)} />
+                                            <div className="flex-grow cursor-pointer" onClick={() => setEditingTask(task)}>
+                                                <label htmlFor={`task-${task.id}`} className="font-semibold text-base">{task.title}</label>
+                                                {task.description && <p className="text-sm text-muted-foreground">{task.description}</p>}
+                                            </div>
                                         </li>
                                     ))}
                                 </ul>
@@ -159,12 +202,12 @@ export default function TasksPage() {
                                 <h3 className="text-lg font-semibold mb-3">Selesai ({completedTasks.length})</h3>
                                 <ul className="space-y-3">
                                     {completedTasks.map(task => (
-                                        <li key={task.id} className="flex items-center gap-3 p-3 bg-slate-100 rounded-md">
-                                            <Checkbox id={`task-${task.id}`} checked onCheckedChange={() => handleToggleTask(task.id)} />
-                                            <label htmlFor={`task-${task.id}`} className="flex-grow text-base text-muted-foreground line-through">{task.text}</label>
-                                             <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-destructive h-8 w-8" onClick={() => handleDeleteTask(task.id)}>
-                                                <Trash2 className="h-4 w-4" />
-                                            </Button>
+                                        <li key={task.id} className="flex items-start gap-3 p-3 bg-slate-100 rounded-md">
+                                            <Checkbox id={`task-${task.id}`} className="mt-1" checked onCheckedChange={() => handleToggleTask(task.id)} />
+                                            <div className="flex-grow cursor-pointer" onClick={() => setEditingTask(task)}>
+                                                <label htmlFor={`task-${task.id}`} className="font-semibold text-base text-muted-foreground line-through">{task.title}</label>
+                                                {task.description && <p className="text-sm text-muted-foreground line-through">{task.description}</p>}
+                                            </div>
                                         </li>
                                     ))}
                                 </ul>
@@ -177,6 +220,49 @@ export default function TasksPage() {
           <Footer />
         </div>
       </SidebarInset>
+      
+      {editingTask && (
+        <Dialog open={!!editingTask} onOpenChange={(open) => !open && setEditingTask(null)}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Detail Tugas</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                     <div className="space-y-2">
+                        <label htmlFor="edit-task-title" className="text-sm font-medium">Judul Tugas</label>
+                        <Input 
+                            id="edit-task-title"
+                            value={editingTask.title} 
+                            onChange={(e) => setEditingTask({...editingTask, title: e.target.value})} 
+                            className="text-base"
+                        />
+                    </div>
+                    <div className="space-y-2">
+                        <label htmlFor="edit-task-desc" className="text-sm font-medium">Deskripsi</label>
+                        <Textarea 
+                            id="edit-task-desc"
+                            value={editingTask.description} 
+                            onChange={(e) => setEditingTask({...editingTask, description: e.target.value})}
+                            placeholder="Tambahkan deskripsi..."
+                            className="text-base"
+                            rows={3}
+                        />
+                    </div>
+                </div>
+                <DialogFooter className="justify-between">
+                    <Button variant="destructive" onClick={() => handleDeleteTask(editingTask.id)}>
+                        <Trash2 className="mr-2 h-4 w-4"/> Hapus
+                    </Button>
+                    <div className="flex gap-2">
+                        <Button type="button" variant="secondary" onClick={() => setEditingTask(null)}>Batal</Button>
+                        <Button onClick={handleUpdateTask}>Simpan Perubahan</Button>
+                    </div>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+      )}
     </SidebarProvider>
   );
 }
+
+    
