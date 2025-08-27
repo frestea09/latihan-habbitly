@@ -47,8 +47,12 @@ export default function HabitLogger({
     const text = type === 'journal' ? todayLog?.journal : todayLog?.reasonForMiss;
     setDialogState({ open: true, type, text: text || '' });
   };
+  
+  const handleImmediateLog = (completed: boolean) => {
+    onLogHabit(habitId, date, completed, {});
+  }
 
-  const handleSave = () => {
+  const handleSaveText = () => {
     if (dialogState.type) {
       const completed = dialogState.type === 'journal';
       onLogHabit(habitId, date, completed, { 
@@ -99,7 +103,7 @@ export default function HabitLogger({
               <DialogClose asChild>
                 <Button type="button" variant="secondary">Batal</Button>
               </DialogClose>
-              <Button onClick={handleSave}>Simpan Perubahan</Button>
+              <Button onClick={handleSaveText}>Simpan Perubahan</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -110,43 +114,15 @@ export default function HabitLogger({
   return (
     <>
       <div className="flex items-center gap-2">
-        <Button size="sm" onClick={() => handleOpenDialog('journal')} className="bg-green-500 hover:bg-green-600 text-white h-9">
+        <Button size="sm" onClick={() => handleImmediateLog(true)} className="bg-green-500 hover:bg-green-600 text-white h-9">
           <ThumbsUp className="mr-2 h-4 w-4" />
           Selesai
         </Button>
-        <Button size="sm" variant="outline" onClick={() => handleOpenDialog('reason')} className="h-9">
+        <Button size="sm" variant="outline" onClick={() => handleImmediateLog(false)} className="h-9">
           <ThumbsDown className="mr-2 h-4 w-4" />
           Terlewat
         </Button>
       </div>
-
-      <Dialog open={dialogState.open} onOpenChange={(open) => setDialogState(prev => ({ ...prev, open }))}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>
-              {dialogState.type === 'journal' ? 'Catat pengalamanmu' : 'Apa yang terjadi?'}
-            </DialogTitle>
-            <DialogDescription>
-              {dialogState.type === 'journal'
-                ? 'Kerja bagus! Tambahkan catatan tentang pencapaianmu.'
-                : "Tidak apa-apa. Catat mengapa kamu melewatkannya untuk belajar di kemudian hari."}
-            </DialogDescription>
-          </DialogHeader>
-          <Textarea
-            value={dialogState.text}
-            onChange={(e) => setDialogState(prev => ({ ...prev, text: e.target.value }))}
-            placeholder={
-              dialogState.type === 'journal' ? 'Bagaimana rasanya?' : 'misal: Saya terlalu lelah...'
-            }
-          />
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button type="button" variant="secondary">Batal</Button>
-            </DialogClose>
-            <Button onClick={handleSave}>Simpan</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </>
   );
 }
