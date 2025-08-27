@@ -20,3 +20,16 @@ export type HabitWithLogs = Habit & {
 };
 
 export type TimeRange = 'weekly' | 'monthly' | 'yearly';
+
+export type LearningStep = {
+  id: string;
+  title: string;
+  description: string;
+  completed: boolean;
+};
+
+export type LearningRoadmap = {
+  id: string;
+  topic: string;
+  steps: LearningStep[];
+};

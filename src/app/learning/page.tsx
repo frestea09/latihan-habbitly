@@ -4,16 +4,27 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { SidebarProvider, Sidebar, SidebarInset, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger } from '@/components/ui/sidebar';
-import { LayoutDashboard, BarChart3, Settings, ListTodo, ChevronDown, Wallet, BookOpen } from 'lucide-react';
+import { LayoutDashboard, BarChart3, Settings, ListTodo, ChevronDown, Wallet, BookOpen, Plus, Loader2 } from 'lucide-react';
 import Footer from '@/components/organisms/footer';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Progress } from '@/components/ui/progress';
+import { Checkbox } from '@/components/ui/checkbox';
+import type { LearningRoadmap, LearningStep } from '@/lib/types';
+import { generateLearningRoadmap } from '@/ai/flows/learning-roadmap-flow';
 
 export default function LearningPage() {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isActivityOpen, setIsActivityOpen] = useState(false);
+  const [roadmaps, setRoadmaps] = useState<LearningRoadmap[]>([]);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isNewRoadmapDialogOpen, setIsNewRoadmapDialogOpen] = useState(false);
 
   useEffect(() => {
     const loggedIn = sessionStorage.getItem('isLoggedIn');
@@ -23,7 +34,53 @@ export default function LearningPage() {
       setIsAuthenticated(true);
     }
   }, [router]);
-  
+
+  const handleGenerateRoadmap = async (topic: string) => {
+    setIsGenerating(true);
+    try {
+      const result = await generateLearningRoadmap({ topic });
+      const newRoadmap: LearningRoadmap = {
+        id: `roadmap-${Date.now()}`,
+        topic: result.topic,
+        steps: result.steps.map((step, index) => ({
+          id: `step-${Date.now()}-${index}`,
+          title: step.title,
+          description: step.description,
+          completed: false,
+        })),
+      };
+      setRoadmaps(prev => [newRoadmap, ...prev]);
+      setIsNewRoadmapDialogOpen(false);
+    } catch (error) {
+      console.error("Failed to generate learning roadmap:", error);
+      // You can add a user-facing error message here, e.g., using a toast
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleToggleStep = (roadmapId: string, stepId: string) => {
+    setRoadmaps(prev =>
+      prev.map(roadmap => {
+        if (roadmap.id === roadmapId) {
+          return {
+            ...roadmap,
+            steps: roadmap.steps.map(step =>
+              step.id === stepId ? { ...step, completed: !step.completed } : step
+            ),
+          };
+        }
+        return roadmap;
+      })
+    );
+  };
+
+  const calculateProgress = (steps: LearningStep[]) => {
+    if (steps.length === 0) return 0;
+    const completedSteps = steps.filter(step => step.completed).length;
+    return Math.round((completedSteps / steps.length) * 100);
+  };
+
   if (!isAuthenticated) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
@@ -100,21 +157,82 @@ export default function LearningPage() {
                         <SidebarTrigger className="md:hidden" />
                         <h1 className="text-xl font-bold">Progres Belajar</h1>
                     </div>
-                     <div className="hidden md:flex items-center gap-4">
-                        <SidebarTrigger />
+                     <div className="flex items-center gap-4">
+                        <Dialog open={isNewRoadmapDialogOpen} onOpenChange={setIsNewRoadmapDialogOpen}>
+                          <DialogTrigger asChild>
+                            <Button>
+                              <Plus className="mr-2 h-4 w-4" />
+                              Tambah Topik Belajar
+                            </Button>
+                          </DialogTrigger>
+                          <NewRoadmapDialog
+                            onGenerate={handleGenerateRoadmap}
+                            isGenerating={isGenerating}
+                          />
+                        </Dialog>
+                        <div className="hidden md:flex">
+                           <SidebarTrigger />
+                        </div>
                     </div>
                 </div>
             </div>
            </header>
-          <main className="flex-1 w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Segera Hadir: Pelacak Progres Belajar</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <p className="text-muted-foreground">Fitur untuk mencatat apa yang Anda pelajari setiap hari sedang dalam pengembangan. Nantikan pembaruan selanjutnya!</p>
-                </CardContent>
-            </Card>
+          <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            {roadmaps.length === 0 ? (
+              <div className="text-center py-10 px-4 rounded-lg bg-card border">
+                <h3 className="text-xl font-semibold">Mulai Petualangan Belajar Anda!</h3>
+                <p className="text-muted-foreground mt-2 mb-4">Apa yang ingin Anda kuasai? Tambahkan topik belajar baru untuk memulai.</p>
+                <Dialog open={isNewRoadmapDialogOpen} onOpenChange={setIsNewRoadmapDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button>
+                      <Plus className="mr-2 h-4 w-4" />
+                      Tambah Topik Belajar Pertama Anda
+                    </Button>
+                  </DialogTrigger>
+                  <NewRoadmapDialog
+                    onGenerate={handleGenerateRoadmap}
+                    isGenerating={isGenerating}
+                  />
+                </Dialog>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {roadmaps.map(roadmap => (
+                  <Card key={roadmap.id} className="flex flex-col">
+                    <CardHeader>
+                      <CardTitle>{roadmap.topic}</CardTitle>
+                      <CardDescription>
+                        {roadmap.steps.filter(s => s.completed).length} dari {roadmap.steps.length} langkah selesai
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="flex-grow space-y-4">
+                      <Progress value={calculateProgress(roadmap.steps)} />
+                      <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
+                        {roadmap.steps.map(step => (
+                          <div key={step.id} className="flex items-start gap-3">
+                            <Checkbox 
+                              id={`step-${step.id}`} 
+                              className="mt-1"
+                              checked={step.completed}
+                              onCheckedChange={() => handleToggleStep(roadmap.id, step.id)}
+                            />
+                            <div className="grid gap-0.5">
+                               <label
+                                htmlFor={`step-${step.id}`}
+                                className={cn("text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70", step.completed && "line-through text-muted-foreground")}
+                              >
+                                {step.title}
+                              </label>
+                              <p className="text-xs text-muted-foreground">{step.description}</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </main>
           <Footer />
         </div>
@@ -122,3 +240,56 @@ export default function LearningPage() {
     </SidebarProvider>
   );
 }
+
+
+type NewRoadmapDialogProps = {
+  onGenerate: (topic: string) => void;
+  isGenerating: boolean;
+};
+
+function NewRoadmapDialog({ onGenerate, isGenerating }: NewRoadmapDialogProps) {
+  const [topic, setTopic] = useState('');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (topic.trim()) {
+      onGenerate(topic.trim());
+    }
+  };
+
+  return (
+    <DialogContent>
+      <form onSubmit={handleSubmit}>
+        <DialogHeader>
+          <DialogTitle>Tambah Topik Belajar Baru</DialogTitle>
+          <DialogDescription>
+            Beri tahu kami apa yang ingin Anda pelajari, dan kami akan bantu membuatkan rencana belajarnya untuk Anda.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="py-4">
+          <Input
+            id="topic"
+            value={topic}
+            onChange={(e) => setTopic(e.target.value)}
+            placeholder="misal: Belajar memasak masakan Italia"
+            disabled={isGenerating}
+            required
+          />
+        </div>
+        <DialogFooter>
+          <Button type="submit" disabled={isGenerating || !topic.trim()} className="w-full">
+            {isGenerating ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Membuat Rencana...
+              </>
+            ) : (
+              'Buatkan Rencana Belajar'
+            )}
+          </Button>
+        </DialogFooter>
+      </form>
+    </DialogContent>
+  );
+}
+
