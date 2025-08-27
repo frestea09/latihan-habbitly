@@ -9,15 +9,35 @@ import Header from '@/components/organisms/header';
 import HabitList from '@/components/organisms/habit-list';
 import { useToast } from "@/hooks/use-toast";
 import { SidebarProvider, Sidebar, SidebarInset, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
-import { LayoutDashboard, BarChart3, Settings } from 'lucide-react';
+import { LayoutDashboard, BarChart3, Settings, Clock, List } from 'lucide-react';
 import Footer from '@/components/organisms/footer';
+import { Button } from '@/components/ui/button';
 
-const CATEGORIES: { title: string; category: HabitCategory }[] = [
-  { title: 'Pagi', category: 'morning' },
-  { title: 'Setelah Dzuhur', category: 'after_dhuhr' },
-  { title: 'Sore & Malam', category: 'afternoon_evening' },
-  { title: 'Persiapan & Kualitas Tidur', category: 'sleep_prep' },
+type ViewMode = 'focus' | 'all';
+
+const CATEGORIES: { title: string; category: HabitCategory; startHour: number, endHour: number }[] = [
+  { title: 'Pagi', category: 'morning', startHour: 4, endHour: 11 },
+  { title: 'Setelah Dzuhur', category: 'after_dhuhr', startHour: 12, endHour: 15 },
+  { title: 'Sore & Malam', category: 'afternoon_evening', startHour: 16, endHour: 21 },
+  { title: 'Persiapan & Kualitas Tidur', category: 'sleep_prep', startHour: 22, endHour: 3 },
 ];
+
+const getCurrentCategory = (): HabitCategory | 'all' => {
+    const currentHour = new Date().getHours();
+    for (const cat of CATEGORIES) {
+        if (cat.startHour <= cat.endHour) {
+            if (currentHour >= cat.startHour && currentHour <= cat.endHour) {
+                return cat.category;
+            }
+        } else { // Handles overnight categories like sleep_prep
+            if (currentHour >= cat.startHour || currentHour <= cat.endHour) {
+                return cat.category;
+            }
+        }
+    }
+    return 'morning'; // Default fallback
+};
+
 
 export default function Home() {
   const [habits, setHabits] = useState<Habit[]>(initialHabits);
@@ -25,6 +45,7 @@ export default function Home() {
   const { toast } = useToast();
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>('focus');
 
   useEffect(() => {
     const loggedIn = sessionStorage.getItem('isLoggedIn');
@@ -61,8 +82,8 @@ export default function Home() {
         updatedLogs[existingLogIndex] = {
           ...currentLog,
           completed,
-          journal: completed ? details.journal : undefined,
-          reasonForMiss: !completed ? details.reasonForMiss : undefined,
+          journal: completed ? details.journal : currentLog.journal,
+          reasonForMiss: !completed ? details.reasonForMiss : currentLog.reasonForMiss,
         };
         return updatedLogs;
       } else {
@@ -89,6 +110,12 @@ export default function Home() {
       </div>
     );
   }
+  
+  const currentCategory = getCurrentCategory();
+  const filteredCategories = viewMode === 'focus' 
+    ? CATEGORIES.filter(c => c.category === currentCategory) 
+    : CATEGORIES;
+
 
   return (
     <SidebarProvider>
@@ -120,12 +147,24 @@ export default function Home() {
         <div className="flex flex-col min-h-screen bg-slate-50 text-foreground">
           <Header onAddHabit={handleAddHabit} />
           <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-             <div className="mb-6">
-                <h1 className="text-3xl font-bold">Lacak Kebiasaan Hari Ini</h1>
-                <p className="text-muted-foreground text-lg">Tandai kebiasaan yang sudah atau belum Anda lakukan hari ini.</p>
+             <div className="mb-6 flex justify-between items-center">
+                <div>
+                    <h1 className="text-3xl font-bold">Lacak Kebiasaan Hari Ini</h1>
+                    <p className="text-muted-foreground text-lg">Tandai kebiasaan yang sudah atau belum Anda lakukan hari ini.</p>
+                </div>
+                <div className="flex items-center gap-2 rounded-md bg-muted p-1">
+                   <Button variant={viewMode === 'focus' ? 'default' : 'ghost'} size="sm" onClick={() => setViewMode('focus')} className="h-9">
+                        <Clock className="mr-2 h-4 w-4" />
+                        Fokus Waktu Ini
+                   </Button>
+                   <Button variant={viewMode === 'all' ? 'default' : 'ghost'} size="sm" onClick={() => setViewMode('all')} className="h-9">
+                       <List className="mr-2 h-4 w-4" />
+                       Tampilkan Semua
+                   </Button>
+                </div>
             </div>
             <div className="space-y-10">
-              {CATEGORIES.map(({ title, category }) => (
+              {filteredCategories.length > 0 ? filteredCategories.map(({ title, category }) => (
                 <HabitList
                   key={category}
                   title={title}
@@ -133,7 +172,12 @@ export default function Home() {
                   logs={logs}
                   onLogHabit={handleLogHabit}
                 />
-              ))}
+              )) : (
+                 <div className="text-center py-10 px-4 rounded-lg bg-card border">
+                    <h3 className="text-xl font-semibold">Waktunya Istirahat!</h3>
+                    <p className="text-muted-foreground mt-2">Tidak ada kebiasaan yang dijadwalkan untuk waktu ini. Nikmati waktumu!</p>
+                 </div>
+              )}
             </div>
           </main>
           <Footer />
@@ -142,3 +186,4 @@ export default function Home() {
     </SidebarProvider>
   );
 }
+
