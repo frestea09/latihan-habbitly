@@ -8,6 +8,9 @@ import {
 } from '@/components/ui/card';
 import HabitLogger from '@/components/molecules/habit-logger';
 import { HabitIcon } from '../atoms/habit-icon';
+import MotivationButton from '../molecules/motivation-button';
+import { Badge } from '../ui/badge';
+import { CheckCircle2, XCircle } from 'lucide-react';
 
 type HabitCardProps = {
   habit: Habit;
@@ -38,6 +41,12 @@ export default function HabitCard({ habit, logs, onLogHabit }: HabitCardProps) {
             todayLog={todayLog}
             onLogHabit={onLogHabit}
           />
+           {todayLog && !todayLog.completed && (
+             <>
+                <div className="h-6 w-px bg-slate-200"></div>
+                <MotivationButton habitName={habit.name} reasonForMiss={todayLog.reasonForMiss}/>
+            </>
+          )}
         </div>
       </CardContent>
     </Card>
