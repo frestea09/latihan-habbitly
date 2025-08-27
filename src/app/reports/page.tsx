@@ -27,6 +27,7 @@ export default function ReportsPage() {
   const [timeRange, setTimeRange] = useState<TimeRange>('weekly');
   const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
   const [isActivityOpen, setIsActivityOpen] = useState(true);
+  const [isLearningOpen, setIsLearningOpen] = useState(false);
 
   useEffect(() => {
     const loggedIn = sessionStorage.getItem('isLoggedIn');
@@ -138,7 +139,7 @@ export default function ReportsPage() {
           <SidebarMenu>
             <Collapsible open={isActivityOpen} onOpenChange={setIsActivityOpen}>
               <CollapsibleTrigger className="w-full">
-                <div className="flex items-center justify-between p-2 rounded-md hover:bg-sidebar-accent">
+                <div className="flex items-center justify-between p-2 rounded-md hover:bg-sidebar-accent bg-sidebar-accent">
                     <div className="flex items-center gap-4">
                         <LayoutDashboard />
                         <span className="font-semibold">Aktivitas Harian</span>
@@ -175,12 +176,33 @@ export default function ReportsPage() {
                 <span>Keuangan</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton href="/learning">
-                <BookOpen />
-                <span>Progres Belajar</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+            <Collapsible open={isLearningOpen} onOpenChange={setIsLearningOpen}>
+              <CollapsibleTrigger className="w-full">
+                <div className="flex items-center justify-between p-2 rounded-md hover:bg-sidebar-accent">
+                  <div className="flex items-center gap-4">
+                    <BookOpen />
+                    <span className="font-semibold">Progres Belajar</span>
+                  </div>
+                  <ChevronDown className={cn("h-5 w-5 transition-transform", isLearningOpen && "rotate-180")} />
+                </div>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="pl-6 mt-2 space-y-1">
+                  <SidebarMenuItem>
+                    <SidebarMenuButton href="/learning" variant="outline" size="sm">
+                      <ListTodo />
+                      <span>Topik Belajar Saya</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton href="/learning/reports" variant="outline" size="sm">
+                      <BarChart3 />
+                      <span>Laporan Belajar</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
             <SidebarMenuItem>
               <SidebarMenuButton href="#">
                 <Settings />

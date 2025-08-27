@@ -8,7 +8,7 @@ import type { Habit, HabitLog, HabitCategory } from '@/lib/types';
 import Header from '@/components/organisms/header';
 import HabitList from '@/components/organisms/habit-list';
 import { useToast } from "@/hooks/use-toast";
-import { SidebarProvider, Sidebar, SidebarInset, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarGroup, SidebarGroupLabel, SidebarGroupContent } from '@/components/ui/sidebar';
+import { SidebarProvider, Sidebar, SidebarInset, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarGroup, SidebarGroupLabel, SidebarGroupContent, SidebarTrigger } from '@/components/ui/sidebar';
 import { LayoutDashboard, BarChart3, Settings, Clock, List, ListTodo, ChevronDown, Wallet, BookOpen } from 'lucide-react';
 import Footer from '@/components/organisms/footer';
 import { Button } from '@/components/ui/button';
@@ -49,6 +49,8 @@ export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>('focus');
   const [isActivityOpen, setIsActivityOpen] = useState(true);
+  const [isLearningOpen, setIsLearningOpen] = useState(false);
+
 
   useEffect(() => {
     const loggedIn = sessionStorage.getItem('isLoggedIn');
@@ -127,7 +129,7 @@ export default function Home() {
           <SidebarMenu>
             <Collapsible open={isActivityOpen} onOpenChange={setIsActivityOpen}>
               <CollapsibleTrigger className="w-full">
-                <div className="flex items-center justify-between p-2 rounded-md hover:bg-sidebar-accent">
+                <div className="flex items-center justify-between p-2 rounded-md hover:bg-sidebar-accent bg-sidebar-accent">
                     <div className="flex items-center gap-4">
                         <LayoutDashboard />
                         <span className="font-semibold">Aktivitas Harian</span>
@@ -164,12 +166,33 @@ export default function Home() {
                 <span>Keuangan</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton href="/learning">
-                <BookOpen />
-                <span>Progres Belajar</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+            <Collapsible open={isLearningOpen} onOpenChange={setIsLearningOpen}>
+              <CollapsibleTrigger className="w-full">
+                <div className="flex items-center justify-between p-2 rounded-md hover:bg-sidebar-accent">
+                  <div className="flex items-center gap-4">
+                    <BookOpen />
+                    <span className="font-semibold">Progres Belajar</span>
+                  </div>
+                  <ChevronDown className={cn("h-5 w-5 transition-transform", isLearningOpen && "rotate-180")} />
+                </div>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="pl-6 mt-2 space-y-1">
+                  <SidebarMenuItem>
+                    <SidebarMenuButton href="/learning" variant="outline" size="sm">
+                      <ListTodo />
+                      <span>Topik Belajar Saya</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton href="/learning/reports" variant="outline" size="sm">
+                      <BarChart3 />
+                      <span>Laporan Belajar</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
             <SidebarMenuItem>
               <SidebarMenuButton href="#">
                 <Settings />

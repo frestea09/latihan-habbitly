@@ -22,6 +22,7 @@ export default function LearningPage() {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isActivityOpen, setIsActivityOpen] = useState(false);
+  const [isLearningOpen, setIsLearningOpen] = useState(true);
   const [roadmaps, setRoadmaps] = useState<LearningRoadmap[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isNewRoadmapDialogOpen, setIsNewRoadmapDialogOpen] = useState(false);
@@ -135,12 +136,33 @@ export default function LearningPage() {
                 <span>Keuangan</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton href="/learning" isActive>
-                <BookOpen />
-                <span>Progres Belajar</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+            <Collapsible open={isLearningOpen} onOpenChange={setIsLearningOpen}>
+              <CollapsibleTrigger className="w-full">
+                <div className="flex items-center justify-between p-2 rounded-md hover:bg-sidebar-accent bg-sidebar-accent">
+                  <div className="flex items-center gap-4">
+                    <BookOpen />
+                    <span className="font-semibold">Progres Belajar</span>
+                  </div>
+                  <ChevronDown className={cn("h-5 w-5 transition-transform", isLearningOpen && "rotate-180")} />
+                </div>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="pl-6 mt-2 space-y-1">
+                  <SidebarMenuItem>
+                    <SidebarMenuButton href="/learning" variant="outline" size="sm" isActive>
+                      <ListTodo />
+                      <span>Topik Belajar Saya</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton href="/learning/reports" variant="outline" size="sm">
+                      <BarChart3 />
+                      <span>Laporan Belajar</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
             <SidebarMenuItem>
               <SidebarMenuButton href="#">
                 <Settings />
