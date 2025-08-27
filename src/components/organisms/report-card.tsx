@@ -1,12 +1,13 @@
 'use client';
 
-import type { HabitWithLogs, HabitLog } from '@/lib/types';
+import type { HabitWithLogs, TimeRange } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import HabitTrendChart from '../molecules/habit-trend-chart';
 import { Badge } from '../ui/badge';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../ui/accordion';
 import HabitLogger from '../molecules/habit-logger';
-import { Separator } from '../ui/separator';
+import { getDatesInRange } from '@/lib/utils';
+
 
 type ReportCardProps = {
   habit: HabitWithLogs;
@@ -16,16 +17,13 @@ type ReportCardProps = {
     completed: boolean,
     details: { journal?: string; reasonForMiss?: string }
   ) => void;
+  timeRange: TimeRange;
 };
 
-export default function ReportCard({ habit, onLogHabit }: ReportCardProps) {
-    const last7Days = Array.from({ length: 7 }, (_, i) => {
-        const d = new Date();
-        d.setDate(d.getDate() - i);
-        return d.toISOString().split('T')[0];
-    }).reverse();
+export default function ReportCard({ habit, onLogHabit, timeRange }: ReportCardProps) {
+    const dateList = getDatesInRange(timeRange);
 
-    const sevenDayLogs = last7Days.map(date => {
+    const rangeLogs = dateList.map(date => {
         return habit.logs.find(log => log.date === date) || {
         id: `placeholder-${habit.id}-${date}`,
         habitId: habit.id,
@@ -34,8 +32,8 @@ export default function ReportCard({ habit, onLogHabit }: ReportCardProps) {
         };
     });
 
-    const completionCount = habit.logs.filter(log => log.completed && last7Days.includes(log.date)).length;
-    const completionRate = Math.round((completionCount / 7) * 100);
+    const completionCount = habit.logs.filter(log => log.completed && dateList.includes(log.date)).length;
+    const completionRate = Math.round((completionCount / dateList.length) * 100);
 
     const getBadgeColor = (rate: number) => {
         if (rate > 75) return 'bg-green-100 text-green-800 border-green-200';
@@ -55,6 +53,12 @@ export default function ReportCard({ habit, onLogHabit }: ReportCardProps) {
 
       return new Intl.DateTimeFormat('id-ID', { weekday: 'long', day: 'numeric', month: 'long' }).format(date);
     }
+    
+    const timeRangeTextMap = {
+        weekly: '7 Hari Terakhir',
+        monthly: 'Bulan Ini',
+        yearly: 'Tahun Ini'
+    }
 
   return (
     <Card className="shadow-sm flex flex-col">
@@ -62,13 +66,13 @@ export default function ReportCard({ habit, onLogHabit }: ReportCardProps) {
         <div className="flex justify-between items-start">
             <div>
                 <CardTitle>{habit.name}</CardTitle>
-                <CardDescription>Ringkasan 7 Hari Terakhir</CardDescription>
+                <CardDescription>Ringkasan {timeRangeTextMap[timeRange]}</CardDescription>
             </div>
             <Badge className={getBadgeColor(completionRate)}>{completionRate}% Selesai</Badge>
         </div>
       </CardHeader>
       <CardContent className="flex-grow">
-        <HabitTrendChart logs={sevenDayLogs} />
+        <HabitTrendChart logs={rangeLogs} />
       </CardContent>
       <Accordion type="single" collapsible className="w-full border-t">
         <AccordionItem value="item-1" className="border-b-0">
@@ -76,8 +80,8 @@ export default function ReportCard({ habit, onLogHabit }: ReportCardProps) {
             Ubah Log Harian
           </AccordionTrigger>
           <AccordionContent className="p-0">
-            <ul className="divide-y">
-                {last7Days.slice().reverse().map(date => {
+            <ul className="divide-y max-h-96 overflow-y-auto">
+                {dateList.slice().reverse().map(date => {
                     const log = habit.logs.find(l => l.date === date);
                     return (
                         <li key={date} className="flex items-center justify-between p-4">

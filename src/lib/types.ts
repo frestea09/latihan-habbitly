@@ -18,3 +18,5 @@ export type HabitLog = {
 export type HabitWithLogs = Habit & {
     logs: HabitLog[];
 };
+
+export type TimeRange = 'weekly' | 'monthly' | 'yearly';

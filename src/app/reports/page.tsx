@@ -1,15 +1,15 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { initialHabits, initialLogs } from '@/lib/data';
-import type { Habit, HabitLog, HabitWithLogs } from '@/lib/types';
+import type { Habit, HabitLog, HabitWithLogs, TimeRange } from '@/lib/types';
 import { SidebarProvider, Sidebar, SidebarInset, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger } from '@/components/ui/sidebar';
 import { LayoutDashboard, BarChart3, Settings } from 'lucide-react';
 import Footer from '@/components/organisms/footer';
 import ReportCard from '@/components/organisms/report-card';
 import { useToast } from '@/hooks/use-toast';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function ReportsPage() {
   const [habits, setHabits] = useState<Habit[]>(initialHabits);
@@ -17,6 +17,7 @@ export default function ReportsPage() {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const { toast } = useToast();
+  const [timeRange, setTimeRange] = useState<TimeRange>('weekly');
 
   useEffect(() => {
     const loggedIn = sessionStorage.getItem('isLoggedIn');
@@ -119,11 +120,20 @@ export default function ReportsPage() {
           <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="mb-6">
                 <h2 className="text-2xl font-bold">Ringkasan Kinerja</h2>
-                <p className="text-muted-foreground">Analisis performa kebiasaan Anda selama 7 hari terakhir. Anda bisa mengubah log jika ada kesalahan input.</p>
+                <p className="text-muted-foreground">Analisis performa kebiasaan Anda berdasarkan rentang waktu yang dipilih. Anda bisa mengubah log jika ada kesalahan input.</p>
             </div>
+
+            <Tabs defaultValue="weekly" onValueChange={(value) => setTimeRange(value as TimeRange)} className="w-full mb-6">
+                <TabsList className="grid w-full grid-cols-3 max-w-md">
+                    <TabsTrigger value="weekly">7 Hari Terakhir</TabsTrigger>
+                    <TabsTrigger value="monthly">Bulan Ini</TabsTrigger>
+                    <TabsTrigger value="yearly">Tahun Ini</TabsTrigger>
+                </TabsList>
+            </Tabs>
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {habitsWithLogs.map(habit => (
-                    <ReportCard key={habit.id} habit={habit} onLogHabit={handleLogHabit} />
+                    <ReportCard key={habit.id} habit={habit} onLogHabit={handleLogHabit} timeRange={timeRange} />
                 ))}
             </div>
           </main>
