@@ -26,10 +26,37 @@ export default function PrintPreviewModal({
     const printContent = document.getElementById('print-area');
     if (printContent) {
       const originalContents = document.body.innerHTML;
-      document.body.innerHTML = printContent.innerHTML;
+      document.body.innerHTML = `
+        <html>
+          <head>
+            <title>Cetak Laporan</title>
+            <style>
+              @media print {
+                @page {
+                  size: A4;
+                  margin: 1.5cm;
+                }
+                body {
+                  -webkit-print-color-adjust: exact !important;
+                  print-color-adjust: exact !important;
+                }
+              }
+              ${Array.from(document.styleSheets).map(s => {
+                try {
+                  return Array.from(s.cssRules).map(r => r.cssText).join('\n')
+                } catch {
+                  return ''
+                }
+              }).join('\n')}
+            </style>
+          </head>
+          <body>
+            ${printContent.innerHTML}
+          </body>
+        </html>
+      `;
       window.print();
       document.body.innerHTML = originalContents;
-      // We need to reload to re-attach React listeners
       window.location.reload(); 
     }
   };
@@ -42,16 +69,16 @@ export default function PrintPreviewModal({
         <DialogHeader>
           <DialogTitle>Pratinjau Cetak Laporan</DialogTitle>
         </DialogHeader>
-        <div id="print-area" className="flex-grow overflow-y-auto p-2 bg-white text-black">
-           <div className="print-content-only">
-                <div className="text-center mb-10">
+        <div className="flex-grow overflow-y-auto p-2 bg-white text-black rounded-md">
+           <div id="print-area">
+                <div className="text-center mb-10 pt-8 px-8">
                     <div className="flex justify-center mb-4">
                         <Logo />
                     </div>
                     <h1 className="text-3xl font-bold text-black">Laporan Kinerja Kebiasaan</h1>
                     <p className="text-lg text-slate-600">Ringkasan untuk periode: <span className="font-semibold">{timeRangeTextMap[timeRange]}</span></p>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4 px-8">
                     {habitsWithLogs.map(habit => (
                         <ReportCard 
                             key={habit.id} 
@@ -62,7 +89,7 @@ export default function PrintPreviewModal({
                          />
                     ))}
                 </div>
-                <footer className="text-center mt-12 text-sm text-slate-500">
+                <footer className="text-center mt-12 text-sm text-slate-500 pb-8 px-8">
                     <p>Laporan ini dibuat pada {new Date().toLocaleDateString('id-ID', { dateStyle: 'full' })}. © {new Date().getFullYear()} Habbitly.</p>
                 </footer>
            </div>
@@ -76,23 +103,6 @@ export default function PrintPreviewModal({
             Cetak
           </Button>
         </DialogFooter>
-        <style jsx global>{`
-          .print-content-only {
-            display: none;
-          }
-          @media print {
-            body > *:not(.print-container) {
-              display: none !important;
-            }
-            .print-container {
-              display: block !important;
-              position: absolute;
-              top: 0;
-              left: 0;
-              width: 100%;
-            }
-          }
-        `}</style>
       </DialogContent>
     </Dialog>
   );
