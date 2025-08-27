@@ -28,11 +28,10 @@ export default function HabitList({
   
   return (
     <section>
-      <div className="flex items-center gap-3 mb-6">
-        <HabitIcon />
-        <h2 className="text-2xl font-bold font-headline text-foreground">{title}</h2>
+      <div className="flex items-center gap-3 mb-4">
+        <h2 className="text-xl font-bold font-headline text-slate-600">{title}</h2>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="flex flex-col gap-3">
         {habits.map((habit) => (
           <HabitCard
             key={habit.id}

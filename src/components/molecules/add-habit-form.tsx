@@ -24,7 +24,7 @@ import {
 import type { Habit, HabitCategory } from '@/lib/types';
 
 const formSchema = z.object({
-  name: z.string().min(3, 'Habit name must be at least 3 characters.'),
+  name: z.string().min(3, 'Nama kebiasaan minimal 3 karakter.'),
   category: z.enum(['morning', 'after_dhuhr', 'afternoon_evening', 'sleep_prep']),
 });
 
@@ -53,15 +53,15 @@ export default function AddHabitForm({ onAddHabit, setDialogOpen }: AddHabitForm
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 pt-4">
         <FormField
           control={form.control}
           name="name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Habit Name</FormLabel>
+              <FormLabel>Nama Kebiasaan</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., Read for 15 minutes" {...field} />
+                <Input placeholder="misal: Membaca buku 15 menit" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -72,26 +72,26 @@ export default function AddHabitForm({ onAddHabit, setDialogOpen }: AddHabitForm
           name="category"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Category</FormLabel>
+              <FormLabel>Kategori</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select a category" />
+                    <SelectValue placeholder="Pilih kategori" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="morning">Morning</SelectItem>
-                  <SelectItem value="after_dhuhr">After Dhuhr</SelectItem>
-                  <SelectItem value="afternoon_evening">Afternoon & Evening</SelectItem>
-                  <SelectItem value="sleep_prep">Sleep Prep & Quality</SelectItem>
+                  <SelectItem value="morning">Pagi</SelectItem>
+                  <SelectItem value="after_dhuhr">Setelah Dzuhur</SelectItem>
+                  <SelectItem value="afternoon_evening">Sore & Malam</SelectItem>
+                  <SelectItem value="sleep_prep">Persiapan & Kualitas Tidur</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full">
-          Add Habit
+        <Button type="submit" className="w-full h-11">
+          Tambah Kebiasaan
         </Button>
       </form>
     </Form>

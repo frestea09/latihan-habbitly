@@ -14,7 +14,7 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { ThumbsDown, ThumbsUp } from 'lucide-react';
+import { ThumbsDown, ThumbsUp, CheckCircle2, XCircle, Edit } from 'lucide-react';
 
 type HabitLoggerProps = {
   habitId: string;
@@ -59,15 +59,20 @@ export default function HabitLogger({
   
   if (todayLog) {
     return (
-      <div className="flex items-center gap-2">
-        {todayLog.completed ? (
-          <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">Completed</Badge>
-        ) : (
-          <Badge variant="destructive">Missed</Badge>
-        )}
-        <Button variant="ghost" size="sm" onClick={() => handleOpenDialog(todayLog.completed ? 'journal' : 'reason')}>
-          Edit
-        </Button>
+        <div className="flex items-center gap-2">
+            {todayLog.completed ? (
+            <Badge variant="secondary" className="border-green-300 bg-green-100 text-green-800 hover:bg-green-200 text-base py-1 px-3">
+                <CheckCircle2 className="mr-2 h-5 w-5"/> Selesai
+            </Badge>
+            ) : (
+            <Badge variant="destructive" className="bg-red-100 text-red-800 border-red-200 hover:bg-red-200 text-base py-1 px-3">
+                <XCircle className="mr-2 h-5 w-5"/> Terlewat
+            </Badge>
+            )}
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleOpenDialog(todayLog.completed ? 'journal' : 'reason')}>
+                <Edit className="h-5 w-5 text-slate-500"/>
+                <span className="sr-only">Edit Log</span>
+            </Button>
       </div>
     );
   }
@@ -75,13 +80,13 @@ export default function HabitLogger({
   return (
     <>
       <div className="flex items-center gap-2">
-        <Button size="sm" onClick={() => handleOpenDialog('journal')} className="bg-green-500 hover:bg-green-600 text-white">
+        <Button size="sm" onClick={() => handleOpenDialog('journal')} className="bg-green-500 hover:bg-green-600 text-white h-9">
           <ThumbsUp className="mr-2 h-4 w-4" />
-          Done
+          Selesai
         </Button>
-        <Button size="sm" variant="outline" onClick={() => handleOpenDialog('reason')}>
+        <Button size="sm" variant="outline" onClick={() => handleOpenDialog('reason')} className="h-9">
           <ThumbsDown className="mr-2 h-4 w-4" />
-          Missed
+          Terlewat
         </Button>
       </div>
 
@@ -89,26 +94,26 @@ export default function HabitLogger({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {dialogState.type === 'journal' ? 'Log your experience' : 'What happened?'}
+              {dialogState.type === 'journal' ? 'Catat pengalamanmu' : 'Apa yang terjadi?'}
             </DialogTitle>
             <DialogDescription>
               {dialogState.type === 'journal'
-                ? 'Great job! Add a note about your achievement.'
-                : "It's okay. Note down why you missed it to learn for next time."}
+                ? 'Kerja bagus! Tambahkan catatan tentang pencapaianmu.'
+                : "Tidak apa-apa. Catat mengapa kamu melewatkannya untuk belajar di kemudian hari."}
             </DialogDescription>
           </DialogHeader>
           <Textarea
             value={dialogState.text}
             onChange={(e) => setDialogState(prev => ({ ...prev, text: e.target.value }))}
             placeholder={
-              dialogState.type === 'journal' ? 'How did it feel?' : 'e.g., I was too tired...'
+              dialogState.type === 'journal' ? 'Bagaimana rasanya?' : 'misal: Saya terlalu lelah...'
             }
           />
           <DialogFooter>
             <DialogClose asChild>
-              <Button type="button" variant="secondary">Cancel</Button>
+              <Button type="button" variant="secondary">Batal</Button>
             </DialogClose>
-            <Button onClick={handleSave}>Save</Button>
+            <Button onClick={handleSave}>Simpan</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

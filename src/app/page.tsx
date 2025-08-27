@@ -8,14 +8,14 @@ import Header from '@/components/organisms/header';
 import HabitList from '@/components/organisms/habit-list';
 import { useToast } from "@/hooks/use-toast";
 import { SidebarProvider, Sidebar, SidebarInset, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
-import { LayoutDashboard, Settings } from 'lucide-react';
+import { LayoutDashboard, BarChart3, Settings } from 'lucide-react';
 import Footer from '@/components/organisms/footer';
 
 const CATEGORIES: { title: string; category: HabitCategory }[] = [
-  { title: 'Morning', category: 'morning' },
-  { title: 'After Dhuhr', category: 'after_dhuhr' },
-  { title: 'Afternoon & Evening', category: 'afternoon_evening' },
-  { title: 'Sleep Prep & Quality', category: 'sleep_prep' },
+  { title: 'Pagi', category: 'morning' },
+  { title: 'Setelah Dzuhur', category: 'after_dhuhr' },
+  { title: 'Sore & Malam', category: 'afternoon_evening' },
+  { title: 'Persiapan & Kualitas Tidur', category: 'sleep_prep' },
 ];
 
 export default function Home() {
@@ -38,8 +38,8 @@ export default function Home() {
     const habitWithId = { ...newHabit, id: `habit-${Date.now()}` };
     setHabits((prev) => [...prev, habitWithId]);
     toast({
-      title: "Habit Added!",
-      description: `"${newHabit.name}" has been added to your list.`,
+      title: "Kebiasaan Ditambahkan!",
+      description: `"${newHabit.name}" telah ditambahkan ke daftar Anda.`,
     });
   };
 
@@ -74,15 +74,15 @@ export default function Home() {
       }
     });
     toast({
-      title: "Log Updated!",
-      description: `Your progress for today has been saved.`,
+      title: "Log Diperbarui!",
+      description: `Progres Anda untuk hari ini telah disimpan.`,
     });
   };
   
   if (!isAuthenticated) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
-        <p>Loading...</p>
+        <p>Memuat...</p>
       </div>
     );
   }
@@ -90,28 +90,34 @@ export default function Home() {
   return (
     <SidebarProvider>
       <Sidebar>
-        <SidebarContent>
+        <SidebarContent className="p-4">
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton href="#" isActive>
+              <SidebarMenuButton href="/" isActive>
                 <LayoutDashboard />
-                Dashboard
+                Dasbor
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton href="/reports">
+                <BarChart3 />
+                Laporan
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton href="#">
                 <Settings />
-                Settings
+                Pengaturan
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
         </SidebarContent>
       </Sidebar>
       <SidebarInset>
-        <div className="flex flex-col min-h-screen bg-background text-foreground">
+        <div className="flex flex-col min-h-screen bg-slate-50 text-foreground">
           <Header onAddHabit={handleAddHabit} />
           <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="space-y-12">
+            <div className="space-y-10">
               {CATEGORIES.map(({ title, category }) => (
                 <HabitList
                   key={category}

@@ -1,13 +1,13 @@
 import type { Habit, HabitLog } from './types';
 
 export const initialHabits: Habit[] = [
-  { id: '1', name: 'Morning Journaling', category: 'morning' },
-  { id: '2', name: 'Read Quran after Fajr', category: 'morning' },
-  { id: '3', name: 'Quick Dhuhr Sunnah Prayer', category: 'after_dhuhr' },
-  { id: '4', name: 'Evening Dhikr', category: 'afternoon_evening' },
-  { id: '5', name: 'Review daily tasks', category: 'afternoon_evening' },
-  { id: '6', name: 'Read a book before sleep', category: 'sleep_prep' },
-  { id: '7', name: 'Rate Sleep Quality', category: 'sleep_prep' },
+  { id: '1', name: 'Jurnal Pagi', category: 'morning' },
+  { id: '2', name: 'Baca Quran setelah Subuh', category: 'morning' },
+  { id: '3', name: 'Sholat Sunnah Dzuhur', category: 'after_dhuhr' },
+  { id: '4', name: 'Dzikir Sore', category: 'afternoon_evening' },
+  { id: '5', name: 'Evaluasi tugas harian', category: 'afternoon_evening' },
+  { id: '6', name: 'Baca buku sebelum tidur', category: 'sleep_prep' },
+  { id: '7', name: 'Menilai Kualitas Tidur', category: 'sleep_prep' },
 ];
 
 const generateLast7DaysLogs = (): HabitLog[] => {
@@ -28,7 +28,7 @@ const generateLast7DaysLogs = (): HabitLog[] => {
           habitId: habit.id,
           date: dateString,
           completed: true,
-          journal: `Felt good completing ${habit.name} today.`,
+          journal: `Senang sekali bisa menyelesaikan ${habit.name} hari ini.`,
         });
       } else {
         logs.push({
@@ -36,7 +36,7 @@ const generateLast7DaysLogs = (): HabitLog[] => {
           habitId: habit.id,
           date: dateString,
           completed: false,
-          reasonForMiss: `Was too busy with other things.`,
+          reasonForMiss: `Terlalu sibuk dengan hal lain.`,
         });
       }
     }

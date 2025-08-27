@@ -33,7 +33,7 @@ export default function Header({ onAddHabit }: HeaderProps) {
   return (
     <header className="bg-card/80 backdrop-blur-sm border-b sticky top-0 z-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
+        <div className="flex items-center justify-between h-16">
           <div className="flex items-center gap-4">
             <SidebarTrigger className="md:hidden" />
             <Logo />
@@ -42,14 +42,14 @@ export default function Header({ onAddHabit }: HeaderProps) {
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
                 <Button>
-                  <Plus className="mr-2 h-4 w-4" /> Add Habit
+                  <Plus className="mr-2 h-4 w-4" /> Tambah Kebiasaan
                 </Button>
               </DialogTrigger>
               <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                  <DialogTitle>Create a New Habit</DialogTitle>
+                  <DialogTitle>Buat Kebiasaan Baru</DialogTitle>
                   <DialogDescription>
-                    Define a new habit you want to track. Be specific!
+                    Tentukan kebiasaan baru yang ingin Anda lacak. Jadilah spesifik!
                   </DialogDescription>
                 </DialogHeader>
                 <AddHabitForm onAddHabit={onAddHabit} setDialogOpen={setIsDialogOpen} />
@@ -57,7 +57,7 @@ export default function Header({ onAddHabit }: HeaderProps) {
             </Dialog>
             <Button variant="outline" onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />
-              Logout
+              Keluar
             </Button>
           </div>
         </div>

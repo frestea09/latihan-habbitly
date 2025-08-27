@@ -14,3 +14,7 @@ export type HabitLog = {
   journal?: string;
   reasonForMiss?: string;
 };
+
+export type HabitWithLogs = Habit & {
+    logs: HabitLog[];
+};
