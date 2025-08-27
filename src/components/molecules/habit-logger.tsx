@@ -15,7 +15,7 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { ThumbsDown, ThumbsUp, CheckCircle2, XCircle, Edit } from 'lucide-react';
+import { ThumbsDown, ThumbsUp, CheckCircle2, XCircle, PencilLine } from 'lucide-react';
 
 type HabitLoggerProps = {
   habitId: string;
@@ -65,7 +65,7 @@ export default function HabitLogger({
   if (todayLog) {
     return (
       <>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
             {todayLog.completed ? (
             <Badge variant="secondary" className="border-green-300 bg-green-100 text-green-800 hover:bg-green-200 text-base py-1 px-3">
                 <CheckCircle2 className="mr-2 h-5 w-5"/> Selesai
@@ -75,21 +75,21 @@ export default function HabitLogger({
                 <XCircle className="mr-2 h-5 w-5"/> Terlewat
             </Badge>
             )}
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleOpenDialog(todayLog.completed ? 'journal' : 'reason')}>
-                <Edit className="h-5 w-5 text-slate-500"/>
-                <span className="sr-only">Edit Log</span>
+            <Button variant="link" size="sm" className="h-auto p-0 text-base text-muted-foreground" onClick={() => handleOpenDialog(todayLog.completed ? 'journal' : 'reason')}>
+                <PencilLine className="mr-1.5 h-4 w-4"/>
+                {todayLog.completed ? (todayLog.journal ? 'Edit Jurnal' : 'Tambah Jurnal') : (todayLog.reasonForMiss ? 'Edit Alasan' : 'Beri Alasan')}
             </Button>
         </div>
         <Dialog open={dialogState.open} onOpenChange={(open) => setDialogState(prev => ({ ...prev, open }))}>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>
-                {dialogState.type === 'journal' ? 'Edit catatanmu' : 'Edit alasanmu'}
+                {dialogState.type === 'journal' ? 'Tulis jurnalmu' : 'Tulis alasanmu'}
               </DialogTitle>
               <DialogDescription>
                 {dialogState.type === 'journal'
-                  ? 'Ubah catatan tentang pencapaianmu.'
-                  : "Perbarui alasan mengapa kamu melewatkannya."}
+                  ? 'Ceritakan tentang pencapaianmu hari ini.'
+                  : "Ceritakan mengapa kamu melewatkannya hari ini."}
               </DialogDescription>
             </DialogHeader>
             <Textarea
@@ -98,12 +98,13 @@ export default function HabitLogger({
               placeholder={
                 dialogState.type === 'journal' ? 'Bagaimana rasanya?' : 'misal: Saya terlalu lelah...'
               }
+              rows={4}
             />
             <DialogFooter>
               <DialogClose asChild>
                 <Button type="button" variant="secondary">Batal</Button>
               </DialogClose>
-              <Button onClick={handleSaveText}>Simpan Perubahan</Button>
+              <Button onClick={handleSaveText}>Simpan</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
