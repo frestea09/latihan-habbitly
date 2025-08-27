@@ -4,13 +4,13 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { SidebarProvider, Sidebar, SidebarInset, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger } from '@/components/ui/sidebar';
-import { LayoutDashboard, BarChart3, Settings, ListTodo, Plus, Trash2, Edit, ArrowUp, ArrowDown } from 'lucide-react';
+import { LayoutDashboard, BarChart3, Settings, ListTodo, Plus, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
 import Footer from '@/components/organisms/footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import {
   Dialog,
@@ -18,7 +18,6 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-  DialogClose,
 } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 
@@ -125,7 +124,7 @@ export default function TasksPage() {
   return (
     <SidebarProvider>
       <Sidebar>
-        <SidebarContent className="p-4">
+        <SidebarContent className="p-4 overflow-y-auto">
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton href="/">
@@ -171,7 +170,7 @@ export default function TasksPage() {
             <Card>
                 <CardHeader>
                     <CardTitle>Buat Daftar Tugas Hari Ini</CardTitle>
-                    <p className="text-muted-foreground">Tambahkan pekerjaan dengan judul dan deskripsi (opsional) yang perlu Anda selesaikan hari ini.</p>
+                    <p className="text-muted-foreground">Tambahkan pekerjaan yang perlu Anda selesaikan hari ini.</p>
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleAddTask} className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
@@ -295,7 +294,7 @@ export default function TasksPage() {
                         />
                     </div>
                 </div>
-                <DialogFooter className="sm:justify-between">
+                <DialogFooter className="sm:justify-between flex-col-reverse sm:flex-row gap-2">
                      <Button 
                         type="button"
                         variant="destructive" 
@@ -304,9 +303,9 @@ export default function TasksPage() {
                     >
                         <Trash2 className="mr-2 h-4 w-4"/> Hapus
                     </Button>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 justify-end">
                         <Button type="button" variant="secondary" onClick={() => setEditingTask(null)}>Batal</Button>
-                        <Button onClick={handleUpdateTask}>Simpan Perubahan</Button>
+                        <Button onClick={handleUpdateTask}>Simpan</Button>
                     </div>
                 </DialogFooter>
             </DialogContent>

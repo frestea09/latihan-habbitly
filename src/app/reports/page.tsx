@@ -130,7 +130,7 @@ export default function ReportsPage() {
   return (
     <SidebarProvider>
       <Sidebar>
-        <SidebarContent className="p-4">
+        <SidebarContent className="p-4 overflow-y-auto">
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton href="/">
@@ -172,28 +172,28 @@ export default function ReportsPage() {
             </div>
            </header>
           <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="mb-6 flex items-center justify-between">
+            <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
                     <h2 className="text-2xl font-bold">Ringkasan Kinerja</h2>
-                    <p className="text-muted-foreground text-lg">Analisis performa kebiasaan Anda. Anda bisa mengubah log jika ada kesalahan input.</p>
+                    <p className="text-muted-foreground text-lg">Analisis performa kebiasaan Anda.</p>
                 </div>
                 <SidebarTrigger className="hidden md:flex" />
             </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
                 <Tabs defaultValue="weekly" onValueChange={(value) => setTimeRange(value as TimeRange)} className="w-full md:w-auto">
-                    <TabsList className="grid w-full grid-cols-3 max-w-md">
+                    <TabsList className="grid w-full grid-cols-3 md:max-w-md">
                         <TabsTrigger value="weekly">7 Hari Terakhir</TabsTrigger>
                         <TabsTrigger value="monthly">Bulan Ini</TabsTrigger>
                         <TabsTrigger value="yearly">Tahun Ini</TabsTrigger>
                     </TabsList>
                 </Tabs>
-                <div className="flex items-center gap-2">
-                    <Button onClick={handleDownload} variant="outline">
+                <div className="flex items-center gap-2 w-full md:w-auto">
+                    <Button onClick={handleDownload} variant="outline" className="w-1/2 md:w-auto">
                         <Download className="mr-2 h-4 w-4" />
                         Unduh CSV
                     </Button>
-                    <Button onClick={() => setIsPrintModalOpen(true)}>
+                    <Button onClick={() => setIsPrintModalOpen(true)} className="w-1/2 md:w-auto">
                       <Printer className="mr-2 h-4 w-4" />
                       Cetak Laporan
                     </Button>

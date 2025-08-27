@@ -153,17 +153,17 @@ export default function Home() {
         <div className="flex flex-col min-h-screen bg-slate-50 text-foreground">
           <Header onAddHabit={handleAddHabit} />
           <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-             <div className="mb-6 flex justify-between items-center">
+             <div className="mb-6 flex flex-col sm:flex-row justify-between items-center gap-4">
                 <div>
                     <h1 className="text-3xl font-bold">Lacak Kebiasaan Hari Ini</h1>
                     <p className="text-muted-foreground text-lg">Tandai kebiasaan yang sudah atau belum Anda lakukan hari ini.</p>
                 </div>
-                <div className="flex items-center gap-2 rounded-md bg-muted p-1">
-                   <Button variant={viewMode === 'focus' ? 'default' : 'ghost'} size="sm" onClick={() => setViewMode('focus')} className="h-9">
+                <div className="flex w-full sm:w-auto items-center gap-2 rounded-md bg-muted p-1">
+                   <Button variant={viewMode === 'focus' ? 'default' : 'ghost'} size="sm" onClick={() => setViewMode('focus')} className="h-9 flex-1 sm:flex-none">
                         <Clock className="mr-2 h-4 w-4" />
                         Fokus Waktu Ini
                    </Button>
-                   <Button variant={viewMode === 'all' ? 'default' : 'ghost'} size="sm" onClick={() => setViewMode('all')} className="h-9">
+                   <Button variant={viewMode === 'all' ? 'default' : 'ghost'} size="sm" onClick={() => setViewMode('all')} className="h-9 flex-1 sm:flex-none">
                        <List className="mr-2 h-4 w-4" />
                        Tampilkan Semua
                    </Button>
