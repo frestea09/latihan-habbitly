@@ -24,6 +24,21 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      // {
+      //   source: '/',
+      //   destination: '/login',
+      //   permanent: false,
+      //   missing: [
+      //     {
+      //       type: 'cookie',
+      //       key: 'isLoggedIn',
+      //     },
+      //   ],
+      // },
+    ];
+  },
 };
 
 export default nextConfig;

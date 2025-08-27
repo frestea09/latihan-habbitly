@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { initialHabits, initialLogs } from '@/lib/data';
 import type { Habit, HabitLog, HabitCategory } from '@/lib/types';
 import Header from '@/components/organisms/header';
@@ -18,6 +19,17 @@ export default function Home() {
   const [habits, setHabits] = useState<Habit[]>(initialHabits);
   const [logs, setLogs] = useState<HabitLog[]>(initialLogs);
   const { toast } = useToast();
+  const router = useRouter();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    const loggedIn = sessionStorage.getItem('isLoggedIn');
+    if (loggedIn !== 'true') {
+      router.push('/login');
+    } else {
+      setIsAuthenticated(true);
+    }
+  }, [router]);
 
   const handleAddHabit = (newHabit: Omit<Habit, 'id'>) => {
     const habitWithId = { ...newHabit, id: `habit-${Date.now()}` };
@@ -63,6 +75,14 @@ export default function Home() {
       description: `Your progress for today has been saved.`,
     });
   };
+  
+  if (!isAuthenticated) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-background">
+        <p>Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground">
