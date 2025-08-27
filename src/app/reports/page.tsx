@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { initialHabits, initialLogs } from '@/lib/data';
 import type { Habit, HabitLog, HabitWithLogs, TimeRange } from '@/lib/types';
 import { SidebarProvider, Sidebar, SidebarInset, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger } from '@/components/ui/sidebar';
-import { LayoutDashboard, BarChart3, Settings } from 'lucide-react';
+import { LayoutDashboard, BarChart3, Settings, ListTodo } from 'lucide-react';
 import Footer from '@/components/organisms/footer';
 import ReportCard from '@/components/organisms/report-card';
 import { useToast } from '@/hooks/use-toast';
@@ -89,6 +89,12 @@ export default function ReportsPage() {
               <SidebarMenuButton href="/">
                 <LayoutDashboard />
                 <span>Lacak Hari Ini</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton href="/tasks">
+                <ListTodo />
+                <span>Tugas Harian</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>

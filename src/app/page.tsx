@@ -9,7 +9,7 @@ import Header from '@/components/organisms/header';
 import HabitList from '@/components/organisms/habit-list';
 import { useToast } from "@/hooks/use-toast";
 import { SidebarProvider, Sidebar, SidebarInset, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
-import { LayoutDashboard, BarChart3, Settings, Clock, List } from 'lucide-react';
+import { LayoutDashboard, BarChart3, Settings, Clock, List, ListTodo } from 'lucide-react';
 import Footer from '@/components/organisms/footer';
 import { Button } from '@/components/ui/button';
 
@@ -128,6 +128,12 @@ export default function Home() {
                 <span>Lacak Hari Ini</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
+             <SidebarMenuItem>
+              <SidebarMenuButton href="/tasks">
+                <ListTodo />
+                <span>Tugas Harian</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton href="/reports">
                 <BarChart3 />
@@ -186,4 +192,3 @@ export default function Home() {
     </SidebarProvider>
   );
 }
-
