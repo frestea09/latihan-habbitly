@@ -95,19 +95,19 @@ export default function Home() {
             <SidebarMenuItem>
               <SidebarMenuButton href="/" isActive>
                 <LayoutDashboard />
-                Dasbor
+                <span>Dasbor</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton href="/reports">
                 <BarChart3 />
-                Laporan
+                <span>Laporan</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton href="#">
                 <Settings />
-                Pengaturan
+                <span>Pengaturan</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
@@ -135,3 +135,5 @@ export default function Home() {
     </SidebarProvider>
   );
 }
+
+    

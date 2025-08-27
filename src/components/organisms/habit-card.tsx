@@ -6,12 +6,7 @@ import {
   CardContent,
 } from '@/components/ui/card';
 import HabitLogger from '@/components/molecules/habit-logger';
-import MotivationButton from '@/components/molecules/motivation-button';
 import { HabitIcon } from '../atoms/habit-icon';
-import { Badge } from '../ui/badge';
-import { TrendingUp, TrendingDown } from 'lucide-react';
-import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
-import HabitTrendChart from '../molecules/habit-trend-chart';
 
 type HabitCardProps = {
   habit: Habit;
@@ -43,39 +38,23 @@ export default function HabitCard({ habit, logs, onLogHabit }: HabitCardProps) {
     };
   });
 
-  const completionCount = sevenDayLogs.filter(log => log.completed).length;
-  const completionRate = (completionCount / 7) * 100;
-  const isTrendingUp = completionRate >= 50;
-
   return (
     <Card className="shadow-sm hover:shadow-md transition-shadow duration-300">
-      <CardContent className="p-3 flex items-center justify-between gap-4">
+      <CardContent className="p-4 flex items-center justify-between gap-4">
         <div className="flex items-center gap-4 flex-grow">
           <HabitIcon />
           <span className="font-semibold text-lg">{habit.name}</span>
         </div>
         <div className="flex items-center gap-3">
-            <Popover>
-                <PopoverTrigger asChild>
-                    <Badge variant={isTrendingUp ? 'secondary' : 'outline'} className={`cursor-pointer ${isTrendingUp ? 'bg-green-100 text-green-800 border-green-200' : 'bg-red-50 text-red-700'}`}>
-                        {isTrendingUp ? <TrendingUp className="mr-1.5 h-4 w-4" /> : <TrendingDown className="mr-1.5 h-4 w-4" />}
-                        {completionCount}/7 hari
-                    </Badge>
-                </PopoverTrigger>
-                <PopoverContent className="w-80">
-                    <h4 className="font-medium text-center mb-2">Tren 7 Hari Terakhir</h4>
-                    <HabitTrendChart logs={sevenDayLogs} />
-                </PopoverContent>
-            </Popover>
-          
           <HabitLogger
             habitId={habit.id}
             todayLog={todayLog}
             onLogHabit={onLogHabit}
           />
-          <MotivationButton habit={habit} logs={sevenDayLogs} />
         </div>
       </CardContent>
     </Card>
   );
 }
+
+    
