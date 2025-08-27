@@ -67,7 +67,6 @@ export default function ReportsPage() {
       </Sidebar>
       <SidebarInset>
         <div className="flex flex-col min-h-screen bg-slate-50 text-foreground">
-          {/* Header component doesn't need onAddHabit on this page */}
           <header className="bg-card/80 backdrop-blur-sm border-b sticky top-0 z-10">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16">
@@ -79,6 +78,10 @@ export default function ReportsPage() {
             </div>
            </header>
           <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="mb-6">
+                <h2 className="text-2xl font-bold">Ringkasan Kinerja</h2>
+                <p className="text-muted-foreground">Analisis performa kebiasaan Anda selama 7 hari terakhir.</p>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {habitsWithLogs.map(habit => (
                     <ReportCard key={habit.id} habit={habit} />
