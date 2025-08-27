@@ -15,6 +15,7 @@ import type { Habit } from '@/lib/types';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Logo } from '@/components/atoms/logo';
+import { SidebarTrigger } from '@/components/ui/sidebar';
 
 type HeaderProps = {
   onAddHabit: (habit: Omit<Habit, 'id'>) => void;
@@ -33,7 +34,10 @@ export default function Header({ onAddHabit }: HeaderProps) {
     <header className="bg-card/80 backdrop-blur-sm border-b sticky top-0 z-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
-          <Logo />
+          <div className="flex items-center gap-4">
+            <SidebarTrigger className="md:hidden" />
+            <Logo />
+          </div>
           <div className="flex items-center gap-4">
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>

@@ -7,6 +7,9 @@ import type { Habit, HabitLog, HabitCategory } from '@/lib/types';
 import Header from '@/components/organisms/header';
 import HabitList from '@/components/organisms/habit-list';
 import { useToast } from "@/hooks/use-toast";
+import { SidebarProvider, Sidebar, SidebarInset, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
+import { LayoutDashboard, Settings } from 'lucide-react';
+import Footer from '@/components/organisms/footer';
 
 const CATEGORIES: { title: string; category: HabitCategory }[] = [
   { title: 'Morning', category: 'morning' },
@@ -85,21 +88,44 @@ export default function Home() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-background text-foreground">
-      <Header onAddHabit={handleAddHabit} />
-      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="space-y-12">
-          {CATEGORIES.map(({ title, category }) => (
-            <HabitList
-              key={category}
-              title={title}
-              habits={habits.filter((h) => h.category === category)}
-              logs={logs}
-              onLogHabit={handleLogHabit}
-            />
-          ))}
-        </div>
-      </main>
-    </div>
+    <SidebarProvider>
+      <div className="flex flex-col min-h-screen bg-background text-foreground">
+        <Sidebar>
+          <SidebarContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton href="#" isActive>
+                  <LayoutDashboard />
+                  Dashboard
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton href="#">
+                  <Settings />
+                  Settings
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarContent>
+        </Sidebar>
+        <SidebarInset>
+          <Header onAddHabit={handleAddHabit} />
+          <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="space-y-12">
+              {CATEGORIES.map(({ title, category }) => (
+                <HabitList
+                  key={category}
+                  title={title}
+                  habits={habits.filter((h) => h.category === category)}
+                  logs={logs}
+                  onLogHabit={handleLogHabit}
+                />
+              ))}
+            </div>
+          </main>
+          <Footer />
+        </SidebarInset>
+      </div>
+    </SidebarProvider>
   );
 }
