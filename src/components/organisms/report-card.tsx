@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { HabitWithLogs, TimeRange } from '@/lib/types';
@@ -18,9 +19,10 @@ type ReportCardProps = {
     details: { journal?: string; reasonForMiss?: string }
   ) => void;
   timeRange: TimeRange;
+  isInteractive: boolean;
 };
 
-export default function ReportCard({ habit, onLogHabit, timeRange }: ReportCardProps) {
+export default function ReportCard({ habit, onLogHabit, timeRange, isInteractive = true }: ReportCardProps) {
     const dateList = getDatesInRange(timeRange);
 
     const rangeLogs = dateList.map(date => {
@@ -33,7 +35,7 @@ export default function ReportCard({ habit, onLogHabit, timeRange }: ReportCardP
     });
 
     const completionCount = habit.logs.filter(log => log.completed && dateList.includes(log.date)).length;
-    const completionRate = Math.round((completionCount / dateList.length) * 100);
+    const completionRate = dateList.length > 0 ? Math.round((completionCount / dateList.length) * 100) : 0;
 
     const getBadgeColor = (rate: number) => {
         if (rate > 75) return 'bg-green-100 text-green-800 border-green-200';
@@ -61,7 +63,7 @@ export default function ReportCard({ habit, onLogHabit, timeRange }: ReportCardP
     }
 
   return (
-    <Card className="shadow-sm flex flex-col">
+    <Card className="shadow-sm flex flex-col print:shadow-none print:border print:break-inside-avoid">
       <CardHeader>
         <div className="flex justify-between items-start">
             <div>
@@ -74,31 +76,33 @@ export default function ReportCard({ habit, onLogHabit, timeRange }: ReportCardP
       <CardContent className="flex-grow">
         <HabitTrendChart logs={rangeLogs} />
       </CardContent>
-      <Accordion type="single" collapsible className="w-full border-t">
-        <AccordionItem value="item-1" className="border-b-0">
-          <AccordionTrigger className="p-4 text-base font-semibold hover:no-underline">
-            Ubah Log Harian
-          </AccordionTrigger>
-          <AccordionContent className="p-0">
-            <ul className="divide-y max-h-96 overflow-y-auto">
-                {dateList.slice().reverse().map(date => {
-                    const log = habit.logs.find(l => l.date === date);
-                    return (
-                        <li key={date} className="flex items-center justify-between p-4">
-                           <span className="font-medium text-muted-foreground">{formatDate(date)}</span>
-                           <HabitLogger
-                                habitId={habit.id}
-                                date={date}
-                                todayLog={log}
-                                onLogHabit={onLogHabit}
-                           />
-                        </li>
-                    )
-                })}
-            </ul>
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
+      {isInteractive && (
+          <Accordion type="single" collapsible className="w-full border-t">
+            <AccordionItem value="item-1" className="border-b-0">
+              <AccordionTrigger className="p-4 text-base font-semibold hover:no-underline">
+                Ubah Log Harian
+              </AccordionTrigger>
+              <AccordionContent className="p-0">
+                <ul className="divide-y max-h-96 overflow-y-auto">
+                    {dateList.slice().reverse().map(date => {
+                        const log = habit.logs.find(l => l.date === date);
+                        return (
+                            <li key={date} className="flex items-center justify-between p-4">
+                               <span className="font-medium text-muted-foreground">{formatDate(date)}</span>
+                               <HabitLogger
+                                    habitId={habit.id}
+                                    date={date}
+                                    todayLog={log}
+                                    onLogHabit={onLogHabit}
+                               />
+                            </li>
+                        )
+                    })}
+                </ul>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+      )}
     </Card>
   );
 }

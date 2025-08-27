@@ -13,7 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from '@/components/ui/button';
 import { getDatesInRange } from '@/lib/utils';
-import Link from 'next/link';
+import PrintPreviewModal from '@/components/organisms/print-preview-modal';
 
 export default function ReportsPage() {
   const [habits, setHabits] = useState<Habit[]>(initialHabits);
@@ -22,6 +22,7 @@ export default function ReportsPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const { toast } = useToast();
   const [timeRange, setTimeRange] = useState<TimeRange>('weekly');
+  const [isPrintModalOpen, setIsPrintModalOpen] = useState(false);
 
   useEffect(() => {
     const loggedIn = sessionStorage.getItem('isLoggedIn');
@@ -189,11 +190,9 @@ export default function ReportsPage() {
                         <Download className="mr-2 h-4 w-4" />
                         Unduh CSV
                     </Button>
-                    <Button asChild>
-                        <Link href={`/reports/print?range=${timeRange}`} target="_blank">
-                            <Printer className="mr-2 h-4 w-4" />
-                            Cetak Laporan
-                        </Link>
+                    <Button onClick={() => setIsPrintModalOpen(true)}>
+                      <Printer className="mr-2 h-4 w-4" />
+                      Cetak Laporan
                     </Button>
                 </div>
             </div>
@@ -201,13 +200,19 @@ export default function ReportsPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {habitsWithLogs.map(habit => (
-                    <ReportCard key={habit.id} habit={habit} onLogHabit={handleLogHabit} timeRange={timeRange} />
+                    <ReportCard key={habit.id} habit={habit} onLogHabit={handleLogHabit} timeRange={timeRange} isInteractive={true} />
                 ))}
             </div>
           </main>
           <Footer />
         </div>
       </SidebarInset>
+       <PrintPreviewModal
+        isOpen={isPrintModalOpen}
+        onClose={() => setIsPrintModalOpen(false)}
+        habitsWithLogs={habitsWithLogs}
+        timeRange={timeRange}
+      />
     </SidebarProvider>
   );
 }
