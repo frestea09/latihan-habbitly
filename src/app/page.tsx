@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { initialHabits, initialLogs } from '@/lib/data';
 import type { Habit, HabitLog, HabitCategory } from '@/lib/types';
-import Header from '@/components/layout/header';
-import HabitList from '@/components/habits/habit-list';
+import Header from '@/components/organisms/header';
+import HabitList from '@/components/organisms/habit-list';
 import { useToast } from "@/hooks/use-toast";
 
 const CATEGORIES: { title: string; category: HabitCategory }[] = [
