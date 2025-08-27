@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -56,10 +57,12 @@ export default function Home() {
 
       if (existingLogIndex > -1) {
         const updatedLogs = [...prevLogs];
+        const currentLog = updatedLogs[existingLogIndex];
         updatedLogs[existingLogIndex] = {
-          ...updatedLogs[existingLogIndex],
+          ...currentLog,
           completed,
-          ...details,
+          journal: completed ? details.journal : undefined,
+          reasonForMiss: !completed ? details.reasonForMiss : undefined,
         };
         return updatedLogs;
       } else {
@@ -135,5 +138,3 @@ export default function Home() {
     </SidebarProvider>
   );
 }
-
-    

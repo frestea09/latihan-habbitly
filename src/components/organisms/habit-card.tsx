@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { Habit, HabitLog } from '@/lib/types';
@@ -21,22 +22,7 @@ type HabitCardProps = {
 
 export default function HabitCard({ habit, logs, onLogHabit }: HabitCardProps) {
   const today = new Date().toISOString().split('T')[0];
-  const todayLog = logs.find((log) => log.date === today);
-
-  const last7Days = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date();
-    d.setDate(d.getDate() - i);
-    return d.toISOString().split('T')[0];
-  }).reverse();
-
-  const sevenDayLogs = last7Days.map(date => {
-    return logs.find(log => log.date === date) || {
-      id: `placeholder-${habit.id}-${date}`,
-      habitId: habit.id,
-      date,
-      completed: false
-    };
-  });
+  const todayLog = logs.find((log) => log.habitId === habit.id && log.date === today);
 
   return (
     <Card className="shadow-sm hover:shadow-md transition-shadow duration-300">
@@ -56,5 +42,3 @@ export default function HabitCard({ habit, logs, onLogHabit }: HabitCardProps) {
     </Card>
   );
 }
-
-    

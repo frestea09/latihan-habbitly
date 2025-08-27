@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState } from 'react';
@@ -49,16 +50,16 @@ export default function HabitLogger({
   const handleSave = () => {
     if (dialogState.type) {
       const completed = dialogState.type === 'journal';
-      const details = {
-        [completed ? 'journal' : 'reasonForMiss']: dialogState.text,
-      };
-      onLogHabit(habitId, today, completed, details);
+      onLogHabit(habitId, today, completed, { 
+        [completed ? 'journal' : 'reasonForMiss']: dialogState.text 
+      });
     }
     setDialogState({ open: false, type: null, text: '' });
   };
   
   if (todayLog) {
     return (
+      <>
         <div className="flex items-center gap-2">
             {todayLog.completed ? (
             <Badge variant="secondary" className="border-green-300 bg-green-100 text-green-800 hover:bg-green-200 text-base py-1 px-3">
@@ -73,7 +74,35 @@ export default function HabitLogger({
                 <Edit className="h-5 w-5 text-slate-500"/>
                 <span className="sr-only">Edit Log</span>
             </Button>
-      </div>
+        </div>
+        <Dialog open={dialogState.open} onOpenChange={(open) => setDialogState(prev => ({ ...prev, open }))}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>
+                {dialogState.type === 'journal' ? 'Edit catatanmu' : 'Edit alasanmu'}
+              </DialogTitle>
+              <DialogDescription>
+                {dialogState.type === 'journal'
+                  ? 'Ubah catatan tentang pencapaianmu.'
+                  : "Perbarui alasan mengapa kamu melewatkannya."}
+              </DialogDescription>
+            </DialogHeader>
+            <Textarea
+              value={dialogState.text}
+              onChange={(e) => setDialogState(prev => ({ ...prev, text: e.target.value }))}
+              placeholder={
+                dialogState.type === 'journal' ? 'Bagaimana rasanya?' : 'misal: Saya terlalu lelah...'
+              }
+            />
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button type="button" variant="secondary">Batal</Button>
+              </DialogClose>
+              <Button onClick={handleSave}>Simpan Perubahan</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </>
     );
   }
 
