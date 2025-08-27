@@ -6,13 +6,14 @@ import { useRouter } from 'next/navigation';
 import { initialHabits, initialLogs } from '@/lib/data';
 import type { Habit, HabitLog, HabitWithLogs, TimeRange } from '@/lib/types';
 import { SidebarProvider, Sidebar, SidebarInset, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger } from '@/components/ui/sidebar';
-import { LayoutDashboard, BarChart3, Settings, ListTodo, Download } from 'lucide-react';
+import { LayoutDashboard, BarChart3, Settings, ListTodo, Download, Printer } from 'lucide-react';
 import Footer from '@/components/organisms/footer';
 import ReportCard from '@/components/organisms/report-card';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from '@/components/ui/button';
 import { getDatesInRange } from '@/lib/utils';
+import Link from 'next/link';
 
 export default function ReportsPage() {
   const [habits, setHabits] = useState<Habit[]>(initialHabits);
@@ -85,8 +86,17 @@ export default function ReportsPage() {
         });
     });
 
+    if(dataToExport.length === 0) {
+        toast({
+            title: "Tidak Ada Data",
+            description: "Tidak ada data untuk diunduh pada rentang waktu ini.",
+            variant: "destructive"
+        });
+        return;
+    }
+
     const csvContent = "data:text/csv;charset=utf-8," 
-        + [Object.keys(dataToExport[0]), ...dataToExport.map(item => Object.values(item))].map(e => e.join(",")).join("\n");
+        + [Object.keys(dataToExport[0]), ...dataToExport.map(item => Object.values(item).map(val => `"${val}"`))].map(e => e.join(",")).join("\n");
 
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
@@ -174,10 +184,18 @@ export default function ReportsPage() {
                         <TabsTrigger value="yearly">Tahun Ini</TabsTrigger>
                     </TabsList>
                 </Tabs>
-                <Button onClick={handleDownload}>
-                    <Download className="mr-2 h-4 w-4" />
-                    Unduh Laporan
-                </Button>
+                <div className="flex items-center gap-2">
+                    <Button onClick={handleDownload} variant="outline">
+                        <Download className="mr-2 h-4 w-4" />
+                        Unduh CSV
+                    </Button>
+                    <Button asChild>
+                        <Link href={`/reports/print?range=${timeRange}`} target="_blank">
+                            <Printer className="mr-2 h-4 w-4" />
+                            Cetak Laporan
+                        </Link>
+                    </Button>
+                </div>
             </div>
 
 
