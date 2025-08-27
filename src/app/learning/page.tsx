@@ -35,25 +35,27 @@ export default function LearningPage() {
     }
   }, [router]);
 
-  const handleGenerateRoadmap = async (topic: string) => {
+  const handleCreateRoadmap = async (topic: string, steps: string[]) => {
     setIsGenerating(true);
     try {
-      const result = await generateLearningRoadmap({ topic });
+      // We still use the 'generateLearningRoadmap' function name, but its implementation
+      // has been changed to a manual one.
+      const result = await generateLearningRoadmap({ topic, steps });
       const newRoadmap: LearningRoadmap = {
         id: `roadmap-${Date.now()}`,
         topic: result.topic,
         steps: result.steps.map((step, index) => ({
           id: `step-${Date.now()}-${index}`,
           title: step.title,
-          description: step.description,
+          description: step.description, // Will be empty in manual mode
           completed: false,
         })),
       };
       setRoadmaps(prev => [newRoadmap, ...prev]);
       setIsNewRoadmapDialogOpen(false);
     } catch (error) {
-      console.error("Failed to generate learning roadmap:", error);
-      // You can add a user-facing error message here, e.g., using a toast
+      console.error("Failed to create learning roadmap:", error);
+      // You can add a user-facing error message here
     } finally {
       setIsGenerating(false);
     }
@@ -166,8 +168,8 @@ export default function LearningPage() {
                             </Button>
                           </DialogTrigger>
                           <NewRoadmapDialog
-                            onGenerate={handleGenerateRoadmap}
-                            isGenerating={isGenerating}
+                            onCreate={handleCreateRoadmap}
+                            isCreating={isGenerating}
                           />
                         </Dialog>
                         <div className="hidden md:flex">
@@ -190,8 +192,8 @@ export default function LearningPage() {
                     </Button>
                   </DialogTrigger>
                   <NewRoadmapDialog
-                    onGenerate={handleGenerateRoadmap}
-                    isGenerating={isGenerating}
+                    onCreate={handleCreateRoadmap}
+                    isCreating={isGenerating}
                   />
                 </Dialog>
               </div>
@@ -216,15 +218,12 @@ export default function LearningPage() {
                               checked={step.completed}
                               onCheckedChange={() => handleToggleStep(roadmap.id, step.id)}
                             />
-                            <div className="grid gap-0.5">
-                               <label
+                            <label
                                 htmlFor={`step-${step.id}`}
                                 className={cn("text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70", step.completed && "line-through text-muted-foreground")}
                               >
                                 {step.title}
-                              </label>
-                              <p className="text-xs text-muted-foreground">{step.description}</p>
-                            </div>
+                            </label>
                           </div>
                         ))}
                       </div>
@@ -243,17 +242,19 @@ export default function LearningPage() {
 
 
 type NewRoadmapDialogProps = {
-  onGenerate: (topic: string) => void;
-  isGenerating: boolean;
+  onCreate: (topic: string, steps: string[]) => void;
+  isCreating: boolean;
 };
 
-function NewRoadmapDialog({ onGenerate, isGenerating }: NewRoadmapDialogProps) {
+function NewRoadmapDialog({ onCreate, isCreating }: NewRoadmapDialogProps) {
   const [topic, setTopic] = useState('');
+  const [steps, setSteps] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (topic.trim()) {
-      onGenerate(topic.trim());
+    const stepsArray = steps.split('\n').map(s => s.trim()).filter(s => s.length > 0);
+    if (topic.trim() && stepsArray.length > 0) {
+      onCreate(topic.trim(), stepsArray);
     }
   };
 
@@ -263,28 +264,43 @@ function NewRoadmapDialog({ onGenerate, isGenerating }: NewRoadmapDialogProps) {
         <DialogHeader>
           <DialogTitle>Tambah Topik Belajar Baru</DialogTitle>
           <DialogDescription>
-            Beri tahu kami apa yang ingin Anda pelajari, dan kami akan bantu membuatkan rencana belajarnya untuk Anda.
+            Tentukan apa yang ingin Anda pelajari dan tuliskan langkah-langkah untuk mencapainya.
           </DialogDescription>
         </DialogHeader>
-        <div className="py-4">
-          <Input
-            id="topic"
-            value={topic}
-            onChange={(e) => setTopic(e.target.value)}
-            placeholder="misal: Belajar memasak masakan Italia"
-            disabled={isGenerating}
-            required
-          />
+        <div className="py-4 space-y-4">
+          <div className="space-y-2">
+            <label htmlFor="topic" className="font-medium">Topik</label>
+            <Input
+              id="topic"
+              value={topic}
+              onChange={(e) => setTopic(e.target.value)}
+              placeholder="misal: Belajar memasak masakan Italia"
+              disabled={isCreating}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <label htmlFor="steps" className="font-medium">Langkah-langkah</label>
+            <Textarea
+              id="steps"
+              value={steps}
+              onChange={(e) => setSteps(e.target.value)}
+              placeholder="Tulis setiap langkah di baris baru..."
+              disabled={isCreating}
+              required
+              rows={5}
+            />
+          </div>
         </div>
         <DialogFooter>
-          <Button type="submit" disabled={isGenerating || !topic.trim()} className="w-full">
-            {isGenerating ? (
+          <Button type="submit" disabled={isCreating || !topic.trim() || !steps.trim()} className="w-full">
+            {isCreating ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Membuat Rencana...
+                Menyimpan...
               </>
             ) : (
-              'Buatkan Rencana Belajar'
+              'Simpan Rencana Belajar'
             )}
           </Button>
         </DialogFooter>
@@ -292,4 +308,3 @@ function NewRoadmapDialog({ onGenerate, isGenerating }: NewRoadmapDialogProps) {
     </DialogContent>
   );
 }
-
