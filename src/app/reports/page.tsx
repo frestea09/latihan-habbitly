@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -87,19 +88,19 @@ export default function ReportsPage() {
             <SidebarMenuItem>
               <SidebarMenuButton href="/">
                 <LayoutDashboard />
-                Dasbor
+                <span>Lacak Hari Ini</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton href="/reports" isActive>
                 <BarChart3 />
-                Laporan
+                <span>Laporan</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton href="#">
                 <Settings />
-                Pengaturan
+                <span>Pengaturan</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>
@@ -120,7 +121,7 @@ export default function ReportsPage() {
           <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="mb-6">
                 <h2 className="text-2xl font-bold">Ringkasan Kinerja</h2>
-                <p className="text-muted-foreground">Analisis performa kebiasaan Anda berdasarkan rentang waktu yang dipilih. Anda bisa mengubah log jika ada kesalahan input.</p>
+                <p className="text-muted-foreground text-lg">Analisis performa kebiasaan Anda. Anda bisa mengubah log jika ada kesalahan input.</p>
             </div>
 
             <Tabs defaultValue="weekly" onValueChange={(value) => setTimeRange(value as TimeRange)} className="w-full mb-6">

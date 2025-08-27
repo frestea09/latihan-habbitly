@@ -11,14 +11,12 @@ import { useToast } from "@/hooks/use-toast";
 import { SidebarProvider, Sidebar, SidebarInset, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
 import { LayoutDashboard, BarChart3, Settings } from 'lucide-react';
 import Footer from '@/components/organisms/footer';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-const CATEGORIES: { title: string; category: HabitCategory, id: HabitCategory | 'all' }[] = [
-  { title: 'Semua', category: 'all', id: 'all' },
-  { title: 'Pagi', category: 'morning', id: 'morning' },
-  { title: 'Setelah Dzuhur', category: 'after_dhuhr', id: 'after_dhuhr' },
-  { title: 'Sore & Malam', category: 'afternoon_evening', id: 'afternoon_evening' },
-  { title: 'Kualitas Tidur', category: 'sleep_prep', id: 'sleep_prep' },
+const CATEGORIES: { title: string; category: HabitCategory }[] = [
+  { title: 'Pagi', category: 'morning' },
+  { title: 'Setelah Dzuhur', category: 'after_dhuhr' },
+  { title: 'Sore & Malam', category: 'afternoon_evening' },
+  { title: 'Persiapan & Kualitas Tidur', category: 'sleep_prep' },
 ];
 
 export default function Home() {
@@ -100,7 +98,7 @@ export default function Home() {
             <SidebarMenuItem>
               <SidebarMenuButton href="/" isActive>
                 <LayoutDashboard />
-                <span>Dasbor</span>
+                <span>Lacak Hari Ini</span>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
@@ -122,38 +120,21 @@ export default function Home() {
         <div className="flex flex-col min-h-screen bg-slate-50 text-foreground">
           <Header onAddHabit={handleAddHabit} />
           <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <Tabs defaultValue="all" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 md:grid-cols-5 h-auto">
-                {CATEGORIES.map(({ id, title }) => (
-                  <TabsTrigger key={id} value={id} className="py-2 text-base">{title}</TabsTrigger>
-                ))}
-              </TabsList>
-
-              <TabsContent value="all" className="mt-6">
-                <div className="space-y-10">
-                  {CATEGORIES.filter(c => c.id !== 'all').map(({ title, category }) => (
-                    <HabitList
-                      key={category}
-                      title={title}
-                      habits={habits.filter((h) => h.category === category)}
-                      logs={logs}
-                      onLogHabit={handleLogHabit}
-                    />
-                  ))}
-                </div>
-              </TabsContent>
-              
-              {CATEGORIES.filter(c => c.id !== 'all').map(({ id, title, category }) => (
-                 <TabsContent key={id} value={id} className="mt-6">
-                    <HabitList
-                      title={title}
-                      habits={habits.filter((h) => h.category === category)}
-                      logs={logs}
-                      onLogHabit={handleLogHabit}
-                    />
-                 </TabsContent>
+             <div className="mb-6">
+                <h1 className="text-3xl font-bold">Lacak Kebiasaan Hari Ini</h1>
+                <p className="text-muted-foreground text-lg">Tandai kebiasaan yang sudah atau belum Anda lakukan hari ini.</p>
+            </div>
+            <div className="space-y-10">
+              {CATEGORIES.map(({ title, category }) => (
+                <HabitList
+                  key={category}
+                  title={title}
+                  habits={habits.filter((h) => h.category === category)}
+                  logs={logs}
+                  onLogHabit={handleLogHabit}
+                />
               ))}
-            </Tabs>
+            </div>
           </main>
           <Footer />
         </div>
