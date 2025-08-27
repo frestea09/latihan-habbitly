@@ -19,6 +19,7 @@ import { ThumbsDown, ThumbsUp, CheckCircle2, XCircle, Edit } from 'lucide-react'
 
 type HabitLoggerProps = {
   habitId: string;
+  date: string;
   todayLog?: HabitLog;
   onLogHabit: (
     habitId: string,
@@ -36,11 +37,11 @@ type DialogState = {
 
 export default function HabitLogger({
   habitId,
+  date,
   todayLog,
   onLogHabit,
 }: HabitLoggerProps) {
   const [dialogState, setDialogState] = useState<DialogState>({ open: false, type: null, text: '' });
-  const today = new Date().toISOString().split('T')[0];
 
   const handleOpenDialog = (type: 'journal' | 'reason') => {
     const text = type === 'journal' ? todayLog?.journal : todayLog?.reasonForMiss;
@@ -50,7 +51,7 @@ export default function HabitLogger({
   const handleSave = () => {
     if (dialogState.type) {
       const completed = dialogState.type === 'journal';
-      onLogHabit(habitId, today, completed, { 
+      onLogHabit(habitId, date, completed, { 
         [completed ? 'journal' : 'reasonForMiss']: dialogState.text 
       });
     }

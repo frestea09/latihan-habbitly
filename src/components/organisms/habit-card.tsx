@@ -34,6 +34,7 @@ export default function HabitCard({ habit, logs, onLogHabit }: HabitCardProps) {
         <div className="flex items-center gap-3">
           <HabitLogger
             habitId={habit.id}
+            date={today}
             todayLog={todayLog}
             onLogHabit={onLogHabit}
           />
