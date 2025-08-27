@@ -4,7 +4,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { SidebarProvider, Sidebar, SidebarInset, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger } from '@/components/ui/sidebar';
-import { LayoutDashboard, BarChart3, Settings, ListTodo, Plus, Trash2, Edit } from 'lucide-react';
+import { LayoutDashboard, BarChart3, Settings, ListTodo, Plus, Trash2, Edit, ArrowUp, ArrowDown } from 'lucide-react';
 import Footer from '@/components/organisms/footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -80,6 +80,24 @@ export default function TasksPage() {
   const handleDeleteTask = (taskId: string) => {
     setTasks(prev => prev.filter(task => task.id !== taskId));
     setEditingTask(null);
+  };
+
+  const handleMoveTask = (taskId: string, direction: 'up' | 'down') => {
+    setTasks(prev => {
+      const taskIndex = prev.findIndex(t => t.id === taskId);
+      if (taskIndex === -1) return prev;
+
+      const newTasks = [...prev];
+      const task = newTasks[taskIndex];
+      const swapIndex = direction === 'up' ? taskIndex - 1 : taskIndex + 1;
+
+      if (swapIndex < 0 || swapIndex >= newTasks.length) return prev;
+
+      newTasks[taskIndex] = newTasks[swapIndex];
+      newTasks[swapIndex] = task;
+
+      return newTasks;
+    });
   };
   
   if (!isAuthenticated) {
@@ -181,12 +199,22 @@ export default function TasksPage() {
                             <h3 className="text-lg font-semibold mb-3">Harus Dilakukan ({pendingTasks.length})</h3>
                             {pendingTasks.length > 0 ? (
                                 <ul className="space-y-3">
-                                    {pendingTasks.map(task => (
-                                        <li key={task.id} className="flex items-start gap-3 p-3 bg-background rounded-md border">
+                                    {pendingTasks.map((task, index) => (
+                                        <li key={task.id} className="flex items-center gap-3 p-3 bg-background rounded-md border">
                                             <Checkbox id={`task-${task.id}`} className="mt-1" onCheckedChange={() => handleToggleTask(task.id)} />
                                             <div className="flex-grow cursor-pointer" onClick={() => setEditingTask(task)}>
                                                 <label htmlFor={`task-${task.id}`} className="font-semibold text-base">{task.title}</label>
                                                 {task.description && <p className="text-sm text-muted-foreground">{task.description}</p>}
+                                            </div>
+                                            <div className="flex gap-1">
+                                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleMoveTask(task.id, 'up')} disabled={index === 0}>
+                                                    <ArrowUp className="h-4 w-4" />
+                                                    <span className="sr-only">Naik</span>
+                                                </Button>
+                                                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleMoveTask(task.id, 'down')} disabled={index === pendingTasks.length - 1}>
+                                                    <ArrowDown className="h-4 w-4" />
+                                                    <span className="sr-only">Turun</span>
+                                                </Button>
                                             </div>
                                         </li>
                                     ))}
@@ -202,7 +230,7 @@ export default function TasksPage() {
                                 <h3 className="text-lg font-semibold mb-3">Selesai ({completedTasks.length})</h3>
                                 <ul className="space-y-3">
                                     {completedTasks.map(task => (
-                                        <li key={task.id} className="flex items-start gap-3 p-3 bg-slate-100 rounded-md">
+                                        <li key={task.id} className="flex items-center gap-3 p-3 bg-slate-100 rounded-md">
                                             <Checkbox id={`task-${task.id}`} className="mt-1" checked onCheckedChange={() => handleToggleTask(task.id)} />
                                             <div className="flex-grow cursor-pointer" onClick={() => setEditingTask(task)}>
                                                 <label htmlFor={`task-${task.id}`} className="font-semibold text-base text-muted-foreground line-through">{task.title}</label>
@@ -264,5 +292,3 @@ export default function TasksPage() {
     </SidebarProvider>
   );
 }
-
-    
