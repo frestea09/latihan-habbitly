@@ -20,6 +20,7 @@ import {
   DialogFooter,
   DialogClose,
 } from '@/components/ui/dialog';
+import { cn } from '@/lib/utils';
 
 type Task = {
   id: string;
@@ -35,6 +36,7 @@ export default function TasksPage() {
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskDescription, setNewTaskDescription] = useState('');
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [movedTaskId, setMovedTaskId] = useState<string | null>(null);
 
   useEffect(() => {
     const loggedIn = sessionStorage.getItem('isLoggedIn');
@@ -44,6 +46,14 @@ export default function TasksPage() {
       setIsAuthenticated(true);
     }
   }, [router]);
+  
+  useEffect(() => {
+    if (movedTaskId) {
+      const timer = setTimeout(() => setMovedTaskId(null), 500); // Animation duration
+      return () => clearTimeout(timer);
+    }
+  }, [movedTaskId]);
+
 
   const handleAddTask = (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,6 +106,7 @@ export default function TasksPage() {
       newTasks[taskIndex] = newTasks[swapIndex];
       newTasks[swapIndex] = task;
 
+      setMovedTaskId(taskId);
       return newTasks;
     });
   };
@@ -200,7 +211,13 @@ export default function TasksPage() {
                             {pendingTasks.length > 0 ? (
                                 <ul className="space-y-3">
                                     {pendingTasks.map((task, index) => (
-                                        <li key={task.id} className="flex items-center gap-3 p-3 bg-background rounded-md border">
+                                        <li 
+                                           key={task.id} 
+                                           className={cn(
+                                             "flex items-center gap-3 p-3 bg-background rounded-md border transition-colors duration-300",
+                                             movedTaskId === task.id && "bg-primary/20"
+                                           )}
+                                         >
                                             <Checkbox id={`task-${task.id}`} className="mt-1" onCheckedChange={() => handleToggleTask(task.id)} />
                                             <div className="flex-grow cursor-pointer" onClick={() => setEditingTask(task)}>
                                                 <label htmlFor={`task-${task.id}`} className="font-semibold text-base">{task.title}</label>
@@ -270,15 +287,20 @@ export default function TasksPage() {
                         <Textarea 
                             id="edit-task-desc"
                             value={editingTask.description} 
-                            onChange={(e) => setEditingTask({...editingTask, description: e.target.value})}
+                            onChange={(e) => setEditingTask({...editingTask, description: e.target.value ?? ''})}
                             placeholder="Tambahkan deskripsi..."
                             className="text-base"
                             rows={3}
                         />
                     </div>
                 </div>
-                <DialogFooter className="justify-between">
-                    <Button variant="destructive" onClick={() => handleDeleteTask(editingTask.id)}>
+                <DialogFooter className="sm:justify-between">
+                     <Button 
+                        type="button"
+                        variant="destructive" 
+                        onClick={() => handleDeleteTask(editingTask.id)} 
+                        className="sm:mr-auto"
+                    >
                         <Trash2 className="mr-2 h-4 w-4"/> Hapus
                     </Button>
                     <div className="flex gap-2">
