@@ -9,6 +9,7 @@ import ReportCard from '@/components/organisms/report-card';
 import { Button } from '@/components/ui/button';
 import { Printer, Loader } from 'lucide-react';
 import { Logo } from '@/components/atoms/logo';
+import { useToast } from '@/hooks/use-toast';
 
 function PrintPageContent() {
   const [habits, setHabits] = useState<Habit[]>(initialHabits);
@@ -17,6 +18,8 @@ function PrintPageContent() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const searchParams = useSearchParams();
   const timeRange = (searchParams.get('range') as TimeRange) || 'weekly';
+  const { toast } = useToast();
+
 
   useEffect(() => {
     const loggedIn = sessionStorage.getItem('isLoggedIn');
@@ -29,6 +32,44 @@ function PrintPageContent() {
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleLogHabit = (
+    habitId: string,
+    date: string,
+    completed: boolean,
+    details: { journal?: string; reasonForMiss?: string }
+  ) => {
+    setLogs((prevLogs) => {
+      const existingLogIndex = prevLogs.findIndex(
+        (log) => log.habitId === habitId && log.date === date
+      );
+
+      if (existingLogIndex > -1) {
+        const updatedLogs = [...prevLogs];
+        const currentLog = updatedLogs[existingLogIndex];
+        updatedLogs[existingLogIndex] = {
+          ...currentLog,
+          completed,
+          journal: completed ? details.journal : currentLog.journal,
+          reasonForMiss: !completed ? details.reasonForMiss : currentLog.reasonForMiss,
+        };
+        return updatedLogs;
+      } else {
+        const newLog: HabitLog = {
+          id: `log-${Date.now()}`,
+          habitId,
+          date,
+          completed,
+          ...details,
+        };
+        return [...prevLogs, newLog];
+      }
+    });
+     toast({
+      title: "Log Diperbarui!",
+      description: `Progres Anda untuk tanggal ${date} telah disimpan.`,
+    });
   };
   
   const habitsWithLogs: HabitWithLogs[] = habits.map(habit => ({
@@ -65,7 +106,7 @@ function PrintPageContent() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 print:grid-cols-2 gap-8">
             {habitsWithLogs.map(habit => (
-                <ReportCard key={habit.id} habit={habit} onLogHabit={() => {}} timeRange={timeRange} />
+                <ReportCard key={habit.id} habit={habit} onLogHabit={handleLogHabit} timeRange={timeRange} />
             ))}
         </div>
       </div>
