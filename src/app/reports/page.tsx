@@ -172,9 +172,12 @@ export default function ReportsPage() {
             </div>
            </header>
           <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <div className="mb-6">
-                <h2 className="text-2xl font-bold">Ringkasan Kinerja</h2>
-                <p className="text-muted-foreground text-lg">Analisis performa kebiasaan Anda. Anda bisa mengubah log jika ada kesalahan input.</p>
+            <div className="mb-6 flex items-center justify-between">
+                <div>
+                    <h2 className="text-2xl font-bold">Ringkasan Kinerja</h2>
+                    <p className="text-muted-foreground text-lg">Analisis performa kebiasaan Anda. Anda bisa mengubah log jika ada kesalahan input.</p>
+                </div>
+                <SidebarTrigger className="hidden md:flex" />
             </div>
 
             <div className="flex flex-wrap items-center justify-between gap-4 mb-6">

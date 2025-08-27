@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Plus, LogOut } from 'lucide-react';
@@ -39,6 +40,7 @@ export default function Header({ onAddHabit }: HeaderProps) {
             <Logo />
           </div>
           <div className="flex items-center gap-4">
+             <SidebarTrigger className="hidden md:flex" />
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
                 <Button>

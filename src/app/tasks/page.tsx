@@ -163,6 +163,7 @@ export default function TasksPage() {
                         <SidebarTrigger className="md:hidden" />
                         <h1 className="text-xl font-bold">Tugas Harian</h1>
                     </div>
+                     <SidebarTrigger className="hidden md:flex" />
                 </div>
             </div>
            </header>
