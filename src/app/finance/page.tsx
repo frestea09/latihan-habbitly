@@ -4,7 +4,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { SidebarProvider, Sidebar, SidebarInset, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger } from '@/components/ui/sidebar';
-import { LayoutDashboard, BarChart3, Settings, ListTodo, ChevronDown, Wallet, BookOpen, Plus, MoreHorizontal, Trash2, ArrowDownUp, Calendar as CalendarIcon, Pencil } from 'lucide-react';
+import { LayoutDashboard, BarChart3, Settings, ListTodo, ChevronDown, Wallet, BookOpen, Plus, MoreHorizontal, Trash2, ArrowDownUp, Calendar as CalendarIcon, Pencil, ListChecks } from 'lucide-react';
 import Footer from '@/components/organisms/footer';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
@@ -189,6 +189,12 @@ export default function FinancePage() {
                     <SidebarMenuButton href="/tasks" variant="outline" size="sm">
                       <ListTodo />
                       <span>Tugas Harian</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton href="/habits" variant="outline" size="sm">
+                      <ListChecks />
+                      <span>Manajemen Kebiasaan</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>

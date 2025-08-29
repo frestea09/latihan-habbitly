@@ -4,7 +4,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { SidebarProvider, Sidebar, SidebarInset, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger } from '@/components/ui/sidebar';
-import { LayoutDashboard, BarChart3, Settings, ListTodo, Plus, Trash2, ArrowUp, ArrowDown, ChevronDown, Wallet, BookOpen } from 'lucide-react';
+import { LayoutDashboard, BarChart3, Settings, ListTodo, Plus, Trash2, ArrowUp, ArrowDown, ChevronDown, Wallet, BookOpen, ListChecks } from 'lucide-react';
 import Footer from '@/components/organisms/footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -194,6 +194,12 @@ export default function TasksPage() {
                     <SidebarMenuButton href="/tasks" variant="outline" size="sm" isActive>
                       <ListTodo />
                       <span>Tugas Harian</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton href="/habits" variant="outline" size="sm">
+                      <ListChecks />
+                      <span>Manajemen Kebiasaan</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
