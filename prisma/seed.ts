@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient, HabitCategory, TransactionType } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
@@ -25,13 +25,13 @@ async function main() {
 
   // Seed Habits and Habit Logs
   const habitsData = [
-    { name: 'Jurnal Pagi', category: 'morning' },
-    { name: 'Baca Quran setelah Subuh', category: 'morning' },
-    { name: 'Sholat Sunnah Dzuhur', category: 'after_dhuhr' },
-    { name: 'Dzikir Sore', category: 'afternoon_evening' },
-    { name: 'Evaluasi tugas harian', category: 'afternoon_evening' },
-    { name: 'Baca buku sebelum tidur', category: 'sleep_prep' },
-    { name: 'Menilai Kualitas Tidur', category: 'sleep_prep' },
+    { name: 'Jurnal Pagi', category: HabitCategory.morning },
+    { name: 'Baca Quran setelah Subuh', category: HabitCategory.morning },
+    { name: 'Sholat Sunnah Dzuhur', category: HabitCategory.after_dhuhr },
+    { name: 'Dzikir Sore', category: HabitCategory.afternoon_evening },
+    { name: 'Evaluasi tugas harian', category: HabitCategory.afternoon_evening },
+    { name: 'Baca buku sebelum tidur', category: HabitCategory.sleep_prep },
+    { name: 'Menilai Kualitas Tidur', category: HabitCategory.sleep_prep },
   ];
 
   for (const habitData of habitsData) {
@@ -97,10 +97,10 @@ async function main() {
   
   // Seed Transactions
   const transactionsData = [
-    { date: new Date(new Date().setDate(new Date().getDate() - 2)), type: 'income', amount: 5000000, category: 'Gaji', description: 'Gaji bulanan' },
-    { date: new Date(new Date().setDate(new Date().getDate() - 2)), type: 'expense', amount: 50000, category: 'Makanan', description: 'Makan siang di kantor' },
-    { date: new Date(new Date().setDate(new Date().getDate() - 1)), type: 'expense', amount: 15000, category: 'Transportasi', description: 'Ojek online' },
-    { date: new Date(), type: 'expense', amount: 75000, category: 'Hiburan', description: 'Nonton film' },
+    { date: new Date(new Date().setDate(new Date().getDate() - 2)), type: TransactionType.income, amount: 5000000, category: 'Gaji', description: 'Gaji bulanan' },
+    { date: new Date(new Date().setDate(new Date().getDate() - 2)), type: TransactionType.expense, amount: 50000, category: 'Makanan', description: 'Makan siang di kantor' },
+    { date: new Date(new Date().setDate(new Date().getDate() - 1)), type: TransactionType.expense, amount: 15000, category: 'Transportasi', description: 'Ojek online' },
+    { date: new Date(), type: TransactionType.expense, amount: 75000, category: 'Hiburan', description: 'Nonton film' },
   ];
   
   for(const txData of transactionsData) {
