@@ -19,8 +19,8 @@ import { cn } from '@/lib/utils';
 
 
 export default function ReportsPage() {
-  const [habits, setHabits] = useState<Habit[]>(initialHabits);
-  const [logs, setLogs] = useState<HabitLog[]>(initialLogs);
+  const [habits, setHabits] = useState<Habit[]>([]);
+  const [logs, setLogs] = useState<HabitLog[]>([]);
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const { toast } = useToast();
@@ -36,8 +36,36 @@ export default function ReportsPage() {
       router.push('/login');
     } else {
       setIsAuthenticated(true);
+      const storedHabits = sessionStorage.getItem('habits');
+      setHabits(storedHabits ? JSON.parse(storedHabits) : initialHabits);
+
+      const storedLogs = sessionStorage.getItem('habitLogs');
+      setLogs(storedLogs ? JSON.parse(storedLogs) : initialLogs);
     }
   }, [router]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+        sessionStorage.setItem('habitLogs', JSON.stringify(logs));
+    }
+   }, [logs, isAuthenticated]);
+
+    // Listen for storage changes from other tabs
+  useEffect(() => {
+    const handleStorageChange = (event: StorageEvent) => {
+        if (event.key === 'habits' && event.newValue) {
+            setHabits(JSON.parse(event.newValue));
+        }
+        if (event.key === 'habitLogs' && event.newValue) {
+            setLogs(JSON.parse(event.newValue));
+        }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+        window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
 
   const handleLogHabit = (
     habitId: string,
@@ -103,7 +131,7 @@ export default function ReportsPage() {
     }
 
     const csvContent = "data:text/csv;charset=utf-8," 
-        + [Object.keys(dataToExport[0]), ...dataToExport.map(item => Object.values(item).map(val => `"${val}"`))].map(e => e.join(",")).join("\n");
+        + [Object.keys(dataToExport[0]), ...dataToExport.map(item => Object.values(item).map(val => `"${String(val).replace(/"/g, '""')}"`).join(","))].map(e => e.join(",")).join("\n");
 
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");

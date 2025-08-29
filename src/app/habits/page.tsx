@@ -34,7 +34,7 @@ export default function HabitsPage() {
     const [isFinanceOpen, setIsFinanceOpen] = useState(false);
     const [isLearningOpen, setIsLearningOpen] = useState(false);
 
-    const [habits, setHabits] = useState<Habit[]>(initialHabits);
+    const [habits, setHabits] = useState<Habit[]>([]);
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
 
@@ -44,12 +44,8 @@ export default function HabitsPage() {
             router.push('/login');
         } else {
             setIsAuthenticated(true);
-            // In a real app, you'd fetch this data from an API
-            // For now, we use initial data and session storage if needed
             const storedHabits = sessionStorage.getItem('habits');
-            if (storedHabits) {
-                setHabits(JSON.parse(storedHabits));
-            }
+            setHabits(storedHabits ? JSON.parse(storedHabits) : initialHabits);
         }
     }, [router]);
 

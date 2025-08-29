@@ -17,6 +17,18 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Logo } from '@/components/atoms/logo';
 import { SidebarTrigger } from '@/components/ui/sidebar';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+
 
 type HeaderProps = {
   onAddHabit: (habit: Omit<Habit, 'id'>) => void;
@@ -27,7 +39,7 @@ export default function Header({ onAddHabit }: HeaderProps) {
   const router = useRouter();
 
   const handleLogout = () => {
-    sessionStorage.removeItem('isLoggedIn');
+    sessionStorage.clear();
     router.push('/login');
   };
 
@@ -39,7 +51,7 @@ export default function Header({ onAddHabit }: HeaderProps) {
             <SidebarTrigger className="md:hidden" />
             <Logo />
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
              <SidebarTrigger className="hidden md:flex" />
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
               <DialogTrigger asChild>
@@ -57,10 +69,27 @@ export default function Header({ onAddHabit }: HeaderProps) {
                 <AddHabitForm onAddHabit={onAddHabit} setDialogOpen={setIsDialogOpen} />
               </DialogContent>
             </Dialog>
-            <Button variant="outline" onClick={handleLogout}>
-              <LogOut className="mr-2 h-4 w-4" />
-              Keluar
-            </Button>
+
+             <AlertDialog>
+                <AlertDialogTrigger asChild>
+                    <Button variant="outline">
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Keluar
+                    </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Apakah Anda yakin ingin keluar?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Anda akan dikembalikan ke halaman login. Semua data yang belum tersimpan mungkin akan hilang.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Batal</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleLogout}>Ya, Keluar</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
       </div>

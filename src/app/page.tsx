@@ -42,8 +42,8 @@ const getCurrentCategory = (): HabitCategory | 'all' => {
 
 
 export default function Home() {
-  const [habits, setHabits] = useState<Habit[]>(initialHabits);
-  const [logs, setLogs] = useState<HabitLog[]>(initialLogs);
+  const [habits, setHabits] = useState<Habit[]>([]);
+  const [logs, setLogs] = useState<HabitLog[]>([]);
   const { toast } = useToast();
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -59,8 +59,44 @@ export default function Home() {
       router.push('/login');
     } else {
       setIsAuthenticated(true);
+      // Load habits from session storage or use initial data
+      const storedHabits = sessionStorage.getItem('habits');
+      setHabits(storedHabits ? JSON.parse(storedHabits) : initialHabits);
+
+      // Load logs from session storage or use initial data
+      const storedLogs = sessionStorage.getItem('habitLogs');
+      setLogs(storedLogs ? JSON.parse(storedLogs) : initialLogs);
     }
   }, [router]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+        sessionStorage.setItem('habits', JSON.stringify(habits));
+    }
+  }, [habits, isAuthenticated]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+        sessionStorage.setItem('habitLogs', JSON.stringify(logs));
+    }
+  }, [logs, isAuthenticated]);
+
+  // Listen for storage changes from other tabs
+  useEffect(() => {
+    const handleStorageChange = (event: StorageEvent) => {
+        if (event.key === 'habits' && event.newValue) {
+            setHabits(JSON.parse(event.newValue));
+        }
+        if (event.key === 'habitLogs' && event.newValue) {
+            setLogs(JSON.parse(event.newValue));
+        }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+        window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
 
   const handleAddHabit = (newHabit: Omit<Habit, 'id'>) => {
     const habitWithId = { ...newHabit, id: `habit-${Date.now()}` };
