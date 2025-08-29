@@ -4,19 +4,22 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { SidebarProvider, Sidebar, SidebarInset, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger } from '@/components/ui/sidebar';
-import { LayoutDashboard, BarChart3, Settings, ListTodo, ChevronDown, Wallet, BookOpen, Plus, Loader2 } from 'lucide-react';
+import { LayoutDashboard, BarChart3, Settings, ListTodo, ChevronDown, Wallet, BookOpen, Plus, Loader2, MoreHorizontal, Trash2 } from 'lucide-react';
 import Footer from '@/components/organisms/footer';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
 import { Checkbox } from '@/components/ui/checkbox';
 import type { LearningRoadmap, LearningStep } from '@/lib/types';
 import { generateLearningRoadmap } from '@/ai/flows/learning-roadmap-flow';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+
 
 export default function LearningPage() {
   const router = useRouter();
@@ -26,6 +29,7 @@ export default function LearningPage() {
   const [roadmaps, setRoadmaps] = useState<LearningRoadmap[]>([]);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isNewRoadmapDialogOpen, setIsNewRoadmapDialogOpen] = useState(false);
+  const [editingRoadmap, setEditingRoadmap] = useState<LearningRoadmap | null>(null);
 
   useEffect(() => {
     const loggedIn = sessionStorage.getItem('isLoggedIn');
@@ -33,14 +37,25 @@ export default function LearningPage() {
       router.push('/login');
     } else {
       setIsAuthenticated(true);
+      // Load roadmaps from session storage
+      const storedRoadmaps = sessionStorage.getItem('learningRoadmaps');
+      if (storedRoadmaps) {
+        setRoadmaps(JSON.parse(storedRoadmaps));
+      }
     }
   }, [router]);
+
+  // Persist roadmaps to session storage whenever they change
+  useEffect(() => {
+    if (isAuthenticated) {
+      sessionStorage.setItem('learningRoadmaps', JSON.stringify(roadmaps));
+    }
+  }, [roadmaps, isAuthenticated]);
+
 
   const handleCreateRoadmap = async (topic: string, steps: string[]) => {
     setIsGenerating(true);
     try {
-      // We still use the 'generateLearningRoadmap' function name, but its implementation
-      // has been changed to a manual one.
       const result = await generateLearningRoadmap({ topic, steps });
       const newRoadmap: LearningRoadmap = {
         id: `roadmap-${Date.now()}`,
@@ -56,11 +71,47 @@ export default function LearningPage() {
       setIsNewRoadmapDialogOpen(false);
     } catch (error) {
       console.error("Failed to create learning roadmap:", error);
-      // You can add a user-facing error message here
     } finally {
       setIsGenerating(false);
     }
   };
+
+  const handleUpdateRoadmap = (roadmapId: string, topic: string, steps: string[]) => {
+    setIsGenerating(true);
+    try {
+      setRoadmaps(prev =>
+        prev.map(roadmap => {
+          if (roadmap.id === roadmapId) {
+            return {
+              ...roadmap,
+              topic: topic,
+              steps: steps.map((stepTitle, index) => {
+                // Try to preserve existing steps to not lose completion status
+                const existingStep = roadmap.steps.find(s => s.title === stepTitle);
+                return existingStep || {
+                    id: `step-${Date.now()}-${index}`,
+                    title: stepTitle,
+                    description: '',
+                    completed: false,
+                };
+              }),
+            };
+          }
+          return roadmap;
+        })
+      );
+      setEditingRoadmap(null);
+    } catch (error) {
+        console.error("Failed to update learning roadmap:", error);
+    } finally {
+        setIsGenerating(false);
+    }
+  };
+
+  const handleDeleteRoadmap = (roadmapId: string) => {
+    setRoadmaps(prev => prev.filter(r => r.id !== roadmapId));
+    setEditingRoadmap(null);
+  }
 
   const handleToggleStep = (roadmapId: string, stepId: string) => {
     setRoadmaps(prev =>
@@ -224,10 +275,50 @@ export default function LearningPage() {
                 {roadmaps.map(roadmap => (
                   <Card key={roadmap.id} className="flex flex-col">
                     <CardHeader>
-                      <CardTitle>{roadmap.topic}</CardTitle>
-                      <CardDescription>
-                        {roadmap.steps.filter(s => s.completed).length} dari {roadmap.steps.length} langkah selesai
-                      </CardDescription>
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                          <CardTitle>{roadmap.topic}</CardTitle>
+                          <CardDescription>
+                            {roadmap.steps.filter(s => s.completed).length} dari {roadmap.steps.length} langkah selesai
+                          </CardDescription>
+                        </div>
+                         <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem onSelect={() => setEditingRoadmap(roadmap)}>
+                                    <Settings className="mr-2 h-4 w-4" />
+                                    <span>Kelola Topik</span>
+                                </DropdownMenuItem>
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                            <Trash2 className="mr-2 h-4 w-4 text-red-500" />
+                                            <span className="text-red-500">Hapus</span>
+                                        </DropdownMenuItem>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Apakah Anda yakin?</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                Tindakan ini tidak dapat diurungkan. Ini akan menghapus topik belajar
+                                                <span className="font-semibold"> {roadmap.topic}</span> secara permanen.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Batal</AlertDialogCancel>
+                                            <AlertDialogAction onClick={() => handleDeleteRoadmap(roadmap.id)}>
+                                                Ya, Hapus Topik
+                                            </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </CardHeader>
                     <CardContent className="flex-grow space-y-4">
                       <Progress value={calculateProgress(roadmap.steps)} />
@@ -258,6 +349,16 @@ export default function LearningPage() {
           <Footer />
         </div>
       </SidebarInset>
+       {editingRoadmap && (
+        <EditRoadmapDialog
+          key={editingRoadmap.id} // Re-mount component when editingRoadmap changes
+          roadmap={editingRoadmap}
+          onUpdate={handleUpdateRoadmap}
+          onDelete={handleDeleteRoadmap}
+          isProcessing={isGenerating}
+          onClose={() => setEditingRoadmap(null)}
+        />
+      )}
     </SidebarProvider>
   );
 }
@@ -330,3 +431,95 @@ function NewRoadmapDialog({ onCreate, isCreating }: NewRoadmapDialogProps) {
     </DialogContent>
   );
 }
+
+
+type EditRoadmapDialogProps = {
+  roadmap: LearningRoadmap;
+  onUpdate: (roadmapId: string, topic: string, steps: string[]) => void;
+  onDelete: (roadmapId: string) => void;
+  isProcessing: boolean;
+  onClose: () => void;
+};
+
+function EditRoadmapDialog({ roadmap, onUpdate, onDelete, isProcessing, onClose }: EditRoadmapDialogProps) {
+  const [topic, setTopic] = useState(roadmap.topic);
+  const [steps, setSteps] = useState(roadmap.steps.map(s => s.title).join('\n'));
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const stepsArray = steps.split('\n').map(s => s.trim()).filter(s => s.length > 0);
+    if (topic.trim() && stepsArray.length > 0) {
+      onUpdate(roadmap.id, topic.trim(), stepsArray);
+    }
+  };
+
+  return (
+    <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent>
+        <form onSubmit={handleSubmit}>
+          <DialogHeader>
+            <DialogTitle>Kelola Topik Belajar</DialogTitle>
+            <DialogDescription>
+              Perbarui judul atau langkah-langkah untuk topik ini.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4 space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="edit-topic" className="font-medium">Topik</label>
+              <Input
+                id="edit-topic"
+                value={topic}
+                onChange={(e) => setTopic(e.target.value)}
+                disabled={isProcessing}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <label htmlFor="edit-steps" className="font-medium">Langkah-langkah</label>
+              <Textarea
+                id="edit-steps"
+                value={steps}
+                onChange={(e) => setSteps(e.target.value)}
+                placeholder="Tulis setiap langkah di baris baru..."
+                disabled={isProcessing}
+                required
+                rows={5}
+              />
+            </div>
+          </div>
+          <DialogFooter className="sm:justify-between flex-col-reverse sm:flex-row gap-2">
+              <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                      <Button type="button" variant="destructive" className="sm:mr-auto">
+                        <Trash2 className="mr-2 h-4 w-4" /> Hapus Topik
+                      </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                      <AlertDialogHeader>
+                          <AlertDialogTitle>Apakah Anda yakin?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                              Tindakan ini akan menghapus topik <span className="font-semibold">{roadmap.topic}</span> secara permanen.
+                          </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                          <AlertDialogCancel>Batal</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => onDelete(roadmap.id)}>Ya, Hapus</AlertDialogAction>
+                      </AlertDialogFooter>
+                  </AlertDialogContent>
+              </AlertDialog>
+             <div className="flex gap-2 justify-end">
+                <DialogClose asChild>
+                    <Button type="button" variant="secondary">Batal</Button>
+                </DialogClose>
+                <Button type="submit" disabled={isProcessing || !topic.trim() || !steps.trim()}>
+                    {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                    Simpan Perubahan
+                </Button>
+            </div>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+

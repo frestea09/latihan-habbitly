@@ -29,13 +29,25 @@ export default function LearningReportsPage() {
       router.push('/login');
     } else {
       setIsAuthenticated(true);
-      // In a real app, you'd fetch this data. For now, we'll use session storage or a default.
       const storedRoadmaps = sessionStorage.getItem('learningRoadmaps');
       if (storedRoadmaps) {
         setRoadmaps(JSON.parse(storedRoadmaps));
       }
     }
   }, [router]);
+
+  // Listen for changes in session storage from other tabs/windows
+  useEffect(() => {
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === 'learningRoadmaps' && event.newValue) {
+        setRoadmaps(JSON.parse(event.newValue));
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
 
   const handleDownload = () => {
     if (roadmaps.length === 0) {
@@ -63,7 +75,7 @@ export default function LearningReportsPage() {
     });
 
     const csvContent = "data:text/csv;charset=utf-8,"
-      + [Object.keys(dataToExport[0]), ...dataToExport.map(item => Object.values(item).map(val => `"${val}"`).join(","))].join("\n");
+      + [Object.keys(dataToExport[0]), ...dataToExport.map(item => Object.values(item).map(val => `"${String(val).replace(/"/g, '""')}"`).join(","))].join("\n");
 
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
