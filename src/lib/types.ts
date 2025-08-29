@@ -33,3 +33,12 @@ export type LearningRoadmap = {
   topic: string;
   steps: LearningStep[];
 };
+
+export type Transaction = {
+  id: string;
+  date: string; // YYYY-MM-DD
+  type: 'income' | 'expense';
+  amount: number;
+  category: string;
+  description: string;
+};
