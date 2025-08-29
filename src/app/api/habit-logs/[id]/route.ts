@@ -2,11 +2,12 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
 interface Params {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export async function GET(_request: Request, { params }: Params) {
-  const log = await prisma.habitLog.findUnique({ where: { id: params.id } });
+  const { id } = await params;
+  const log = await prisma.habitLog.findUnique({ where: { id } });
   if (!log) {
     return NextResponse.json(null, { status: 404 });
   }
@@ -17,9 +18,10 @@ export async function GET(_request: Request, { params }: Params) {
 }
 
 export async function PUT(request: Request, { params }: Params) {
+  const { id } = await params;
   const { completed, journal, reasonForMiss } = await request.json();
   const log = await prisma.habitLog.update({
-    where: { id: params.id },
+    where: { id },
     data: { completed, journal, reasonForMiss },
   });
   return NextResponse.json({
@@ -29,7 +31,8 @@ export async function PUT(request: Request, { params }: Params) {
 }
 
 export async function DELETE(_request: Request, { params }: Params) {
-  await prisma.habitLog.delete({ where: { id: params.id } });
+  const { id } = await params;
+  await prisma.habitLog.delete({ where: { id } });
   return new NextResponse(null, { status: 204 });
 }
 

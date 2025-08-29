@@ -15,6 +15,8 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ThumbsDown, ThumbsUp, CheckCircle2, XCircle, PencilLine, Loader2 } from 'lucide-react';
 
 type HabitLoggerProps = {
@@ -92,19 +94,33 @@ export default function HabitLogger({
         <Dialog open={dialogState.open && (dialogState.type === 'edit_journal' || dialogState.type === 'edit_reason')} onOpenChange={(open) => setDialogState(prev => ({ ...prev, open }))}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>
-                {dialogState.type === 'edit_journal' ? 'Edit jurnalmu' : 'Edit alasanmu'}
-              </DialogTitle>
-              <DialogDescription>
-                {dialogState.type === 'edit_journal'
-                  ? 'Perbarui ceritamu tentang pencapaianmu hari ini.'
-                  : "Perbarui alasan mengapa kamu melewatkannya hari ini."}
-              </DialogDescription>
+              <DialogTitle>Edit log harian</DialogTitle>
+              <DialogDescription>Perbarui status dan catatan hari ini.</DialogDescription>
             </DialogHeader>
+            <RadioGroup
+              value={dialogState.type as 'edit_journal' | 'edit_reason'}
+              onValueChange={(value) =>
+                setDialogState((prev) => ({ ...prev, type: value as 'edit_journal' | 'edit_reason', text: '' }))
+              }
+              className="flex gap-4 mb-4"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="edit_journal" id="edit-completed" />
+                <Label htmlFor="edit-completed">Selesai</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="edit_reason" id="edit-missed" />
+                <Label htmlFor="edit-missed">Terlewat</Label>
+              </div>
+            </RadioGroup>
             <Textarea
               value={dialogState.text}
               onChange={(e) => setDialogState(prev => ({ ...prev, text: e.target.value }))}
-              placeholder="Tuliskan catatanmu di sini..."
+              placeholder={
+                dialogState.type === 'edit_journal'
+                  ? 'Tuliskan catatanmu di sini...'
+                  : 'Tuliskan alasanmu di sini...'
+              }
               rows={4}
             />
             <DialogFooter>
