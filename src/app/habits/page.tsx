@@ -37,15 +37,21 @@ export default function HabitsPage() {
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
 
+    const loadHabits = async () => {
+        const res = await fetch('/api/habits', { cache: 'no-store' });
+        if (res.ok) {
+            const data = await res.json();
+            setHabits(data);
+        }
+    };
+
     useEffect(() => {
         const loggedIn = sessionStorage.getItem('isLoggedIn');
         if (loggedIn !== 'true') {
             router.push('/login');
         } else {
             setIsAuthenticated(true);
-            fetch('/api/habits')
-              .then(res => res.json())
-              .then(data => setHabits(data));
+            loadHabits();
         }
     }, [router]);
     
@@ -87,7 +93,7 @@ export default function HabitsPage() {
         const habitToDelete = habits.find(h => h.id === habitId);
         const res = await fetch(`/api/habits/${habitId}`, { method: 'DELETE' });
         if (res.ok) {
-            setHabits(prev => prev.filter(h => h.id !== habitId));
+            await loadHabits();
             toast({
                 title: "Kebiasaan Dihapus!",
                 description: `"${habitToDelete?.name}" telah dihapus.`,
