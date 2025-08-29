@@ -10,15 +10,14 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { useToast } from '@/hooks/use-toast';
 import AddHabitForm from '@/components/molecules/add-habit-form';
-import type { Habit, HabitCategory } from '@/lib/types';
-import { initialHabits } from '@/lib/data';
+import type { Habit, HabitCategory, HabitCategoryWithAll } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
 
-const CATEGORY_MAP: Record<HabitCategory, string> = {
+const CATEGORY_MAP: Record<HabitCategoryWithAll, string> = {
     morning: 'Pagi',
     after_dhuhr: 'Setelah Dzuhur',
     afternoon_evening: 'Sore & Malam',
@@ -44,44 +43,59 @@ export default function HabitsPage() {
             router.push('/login');
         } else {
             setIsAuthenticated(true);
-            const storedHabits = sessionStorage.getItem('habits');
-            setHabits(storedHabits ? JSON.parse(storedHabits) : initialHabits);
+            fetch('/api/habits')
+              .then(res => res.json())
+              .then(data => setHabits(data));
         }
     }, [router]);
-
-    useEffect(() => {
-        if(isAuthenticated) {
-            sessionStorage.setItem('habits', JSON.stringify(habits));
-        }
-    }, [habits, isAuthenticated]);
     
     const handleAddHabit = (newHabitData: Omit<Habit, 'id'>) => {
-        const newHabit = { ...newHabitData, id: `habit-${Date.now()}` };
-        setHabits(prev => [...prev, newHabit]);
-        toast({
-          title: "Kebiasaan Ditambahkan!",
-          description: `"${newHabit.name}" telah ditambahkan.`,
+        fetch('/api/habits', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newHabitData),
+        }).then(async res => {
+            if (res.ok) {
+                const habit = await res.json();
+                setHabits(prev => [...prev, habit]);
+                toast({
+                    title: "Kebiasaan Ditambahkan!",
+                    description: `"${habit.name}" telah ditambahkan.`,
+                });
+            }
         });
-        setIsAddDialogOpen(false); // Close dialog on success
     };
 
     const handleUpdateHabit = (updatedHabitData: Omit<Habit, 'id'>) => {
         if (!editingHabit) return;
-        setHabits(prev => prev.map(h => h.id === editingHabit.id ? { ...h, ...updatedHabitData } : h));
-        toast({
-          title: "Kebiasaan Diperbarui!",
-          description: `"${updatedHabitData.name}" telah berhasil diubah.`,
+        fetch(`/api/habits/${editingHabit.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatedHabitData),
+        }).then(async res => {
+            if (res.ok) {
+                const habit = await res.json();
+                setHabits(prev => prev.map(h => h.id === habit.id ? habit : h));
+                toast({
+                    title: "Kebiasaan Diperbarui!",
+                    description: `"${habit.name}" telah berhasil diubah.`,
+                });
+                setEditingHabit(null);
+            }
         });
-        setEditingHabit(null);
     };
 
     const handleDeleteHabit = (habitId: string) => {
         const habitToDelete = habits.find(h => h.id === habitId);
-        setHabits(prev => prev.filter(h => h.id !== habitId));
-        toast({
-          title: "Kebiasaan Dihapus!",
-          description: `"${habitToDelete?.name}" telah dihapus.`,
-          variant: "destructive"
+        fetch(`/api/habits/${habitId}`, { method: 'DELETE' }).then(res => {
+            if (res.ok) {
+                setHabits(prev => prev.filter(h => h.id !== habitId));
+                toast({
+                    title: "Kebiasaan Dihapus!",
+                    description: `"${habitToDelete?.name}" telah dihapus.`,
+                    variant: "destructive",
+                });
+            }
         });
     };
     

@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient, HabitCategory, TransactionType } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
@@ -24,7 +24,7 @@ async function main() {
   console.log(`Created user with id: ${user.id}`)
 
   // Seed Habits and Habit Logs
-  const habitsData = [
+  const habitsData: { name: string; category: HabitCategory }[] = [
     { name: 'Jurnal Pagi', category: 'morning' },
     { name: 'Baca Quran setelah Subuh', category: 'morning' },
     { name: 'Sholat Sunnah Dzuhur', category: 'after_dhuhr' },
@@ -96,7 +96,7 @@ async function main() {
   console.log('Seeded learning roadmaps.');
   
   // Seed Transactions
-  const transactionsData = [
+  const transactionsData: { date: Date; type: TransactionType; amount: number; category: string; description: string }[] = [
     { date: new Date(new Date().setDate(new Date().getDate() - 2)), type: 'income', amount: 5000000, category: 'Gaji', description: 'Gaji bulanan' },
     { date: new Date(new Date().setDate(new Date().getDate() - 2)), type: 'expense', amount: 50000, category: 'Makanan', description: 'Makan siang di kantor' },
     { date: new Date(new Date().setDate(new Date().getDate() - 1)), type: 'expense', amount: 15000, category: 'Transportasi', description: 'Ojek online' },

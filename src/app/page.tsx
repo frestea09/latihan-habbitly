@@ -24,7 +24,7 @@ const CATEGORIES: { title: string; category: HabitCategory; startHour: number, e
   { title: 'Persiapan & Kualitas Tidur', category: 'sleep_prep', startHour: 22, endHour: 3 },
 ];
 
-const getCurrentCategory = (): HabitCategory | 'all' => {
+const getCurrentCategory = (): HabitCategory => {
     const currentHour = new Date().getHours();
     for (const cat of CATEGORIES) {
         if (cat.startHour <= cat.endHour) {
