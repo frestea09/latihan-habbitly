@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Fragment } from 'react';
 import { useRouter } from 'next/navigation';
 import { SidebarProvider, Sidebar, SidebarInset, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger } from '@/components/ui/sidebar';
 import { LayoutDashboard, BarChart3, Settings, ListTodo, ChevronDown, Wallet, BookOpen, Plus, Trash2, Edit } from 'lucide-react';
@@ -261,9 +261,9 @@ export default function HabitsPage() {
                                         <CardContent>
                                             <ul className="space-y-3">
                                                 {groupedHabits[category as HabitCategory].map((habit, index) => (
-                                                   <>
+                                                   <Fragment key={habit.id}>
                                                    {index > 0 && <Separator />}
-                                                    <li key={habit.id} className="flex items-center justify-between py-2">
+                                                    <li className="flex items-center justify-between py-2">
                                                         <span className="font-medium text-lg">{habit.name}</span>
                                                         <div className="flex items-center gap-2">
                                                             <Button variant="outline" size="sm" onClick={() => setEditingHabit(habit)}>
@@ -292,7 +292,7 @@ export default function HabitsPage() {
                                                             </AlertDialog>
                                                         </div>
                                                     </li>
-                                                   </>
+                                                   </Fragment>
                                                 ))}
                                             </ul>
                                         </CardContent>
