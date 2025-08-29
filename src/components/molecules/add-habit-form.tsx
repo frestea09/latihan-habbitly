@@ -1,3 +1,4 @@
+
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -22,6 +23,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import type { Habit, HabitCategory } from '@/lib/types';
+import { useEffect } from 'react';
 
 const formSchema = z.object({
   name: z.string().min(3, 'Nama kebiasaan minimal 3 karakter.'),
@@ -31,16 +33,23 @@ const formSchema = z.object({
 type AddHabitFormProps = {
   onAddHabit: (habit: Omit<Habit, 'id'>) => void;
   setDialogOpen: (open: boolean) => void;
+  initialData?: Habit;
 };
 
-export default function AddHabitForm({ onAddHabit, setDialogOpen }: AddHabitFormProps) {
+export default function AddHabitForm({ onAddHabit, setDialogOpen, initialData }: AddHabitFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: '',
-      category: 'morning',
+      name: initialData?.name || '',
+      category: initialData?.category || 'morning',
     },
   });
+  
+  useEffect(() => {
+    if (initialData) {
+      form.reset(initialData);
+    }
+  }, [initialData, form]);
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     onAddHabit({
@@ -50,6 +59,8 @@ export default function AddHabitForm({ onAddHabit, setDialogOpen }: AddHabitForm
     form.reset();
     setDialogOpen(false);
   }
+
+  const isEditing = !!initialData;
 
   return (
     <Form {...form}>
@@ -91,7 +102,7 @@ export default function AddHabitForm({ onAddHabit, setDialogOpen }: AddHabitForm
           )}
         />
         <Button type="submit" className="w-full h-11">
-          Tambah Kebiasaan
+          {isEditing ? 'Simpan Perubahan' : 'Tambah Kebiasaan'}
         </Button>
       </form>
     </Form>
