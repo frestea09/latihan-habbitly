@@ -49,54 +49,51 @@ export default function HabitsPage() {
         }
     }, [router]);
     
-    const handleAddHabit = (newHabitData: Omit<Habit, 'id'>) => {
-        fetch('/api/habits', {
+    const handleAddHabit = async (newHabitData: Omit<Habit, 'id'>) => {
+        const res = await fetch('/api/habits', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(newHabitData),
-        }).then(async res => {
-            if (res.ok) {
-                const habit = await res.json();
-                setHabits(prev => [...prev, habit]);
-                toast({
-                    title: "Kebiasaan Ditambahkan!",
-                    description: `"${habit.name}" telah ditambahkan.`,
-                });
-            }
         });
+        if (res.ok) {
+            const habit = await res.json();
+            setHabits(prev => [...prev, habit]);
+            toast({
+                title: "Kebiasaan Ditambahkan!",
+                description: `"${habit.name}" telah ditambahkan.`,
+            });
+        }
     };
 
-    const handleUpdateHabit = (updatedHabitData: Omit<Habit, 'id'>) => {
+    const handleUpdateHabit = async (updatedHabitData: Omit<Habit, 'id'>) => {
         if (!editingHabit) return;
-        fetch(`/api/habits/${editingHabit.id}`, {
+        const res = await fetch(`/api/habits/${editingHabit.id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(updatedHabitData),
-        }).then(async res => {
-            if (res.ok) {
-                const habit = await res.json();
-                setHabits(prev => prev.map(h => h.id === habit.id ? habit : h));
-                toast({
-                    title: "Kebiasaan Diperbarui!",
-                    description: `"${habit.name}" telah berhasil diubah.`,
-                });
-                setEditingHabit(null);
-            }
         });
+        if (res.ok) {
+            const habit = await res.json();
+            setHabits(prev => prev.map(h => h.id === habit.id ? habit : h));
+            toast({
+                title: "Kebiasaan Diperbarui!",
+                description: `"${habit.name}" telah berhasil diubah.`,
+            });
+            setEditingHabit(null);
+        }
     };
 
-    const handleDeleteHabit = (habitId: string) => {
+    const handleDeleteHabit = async (habitId: string) => {
         const habitToDelete = habits.find(h => h.id === habitId);
-        fetch(`/api/habits/${habitId}`, { method: 'DELETE' }).then(res => {
-            if (res.ok) {
-                setHabits(prev => prev.filter(h => h.id !== habitId));
-                toast({
-                    title: "Kebiasaan Dihapus!",
-                    description: `"${habitToDelete?.name}" telah dihapus.`,
-                    variant: "destructive",
-                });
-            }
-        });
+        const res = await fetch(`/api/habits/${habitId}`, { method: 'DELETE' });
+        if (res.ok) {
+            setHabits(prev => prev.filter(h => h.id !== habitId));
+            toast({
+                title: "Kebiasaan Dihapus!",
+                description: `"${habitToDelete?.name}" telah dihapus.`,
+                variant: "destructive",
+            });
+        }
     };
     
     const groupedHabits = habits.reduce((acc, habit) => {

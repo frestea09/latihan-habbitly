@@ -31,7 +31,7 @@ const formSchema = z.object({
 });
 
 type AddHabitFormProps = {
-  onAddHabit: (habit: Omit<Habit, 'id'>) => void;
+  onAddHabit: (habit: Omit<Habit, 'id'>) => Promise<void>;
   setDialogOpen: (open: boolean) => void;
   initialData?: Habit;
 };
@@ -51,8 +51,8 @@ export default function AddHabitForm({ onAddHabit, setDialogOpen, initialData }:
     }
   }, [initialData, form]);
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    onAddHabit({
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    await onAddHabit({
       name: values.name,
       category: values.category as HabitCategory,
     });

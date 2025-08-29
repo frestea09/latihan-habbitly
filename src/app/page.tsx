@@ -3,7 +3,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { initialHabits, initialLogs } from '@/lib/data';
 import type { Habit, HabitLog, HabitCategory } from '@/lib/types';
 import Header from '@/components/organisms/header';
 import HabitList from '@/components/organisms/habit-list';
@@ -59,90 +58,64 @@ export default function Home() {
       router.push('/login');
     } else {
       setIsAuthenticated(true);
-      // Load habits from session storage or use initial data
-      const storedHabits = sessionStorage.getItem('habits');
-      setHabits(storedHabits ? JSON.parse(storedHabits) : initialHabits);
-
-      // Load logs from session storage or use initial data
-      const storedLogs = sessionStorage.getItem('habitLogs');
-      setLogs(storedLogs ? JSON.parse(storedLogs) : initialLogs);
     }
   }, [router]);
 
   useEffect(() => {
     if (isAuthenticated) {
-        sessionStorage.setItem('habits', JSON.stringify(habits));
+      fetch('/api/habits')
+        .then((res) => res.json())
+        .then(setHabits);
+      const today = new Date().toISOString().split('T')[0];
+      fetch(`/api/habit-logs?date=${today}`)
+        .then((res) => res.json())
+        .then(setLogs);
     }
-  }, [habits, isAuthenticated]);
+  }, [isAuthenticated]);
 
-  useEffect(() => {
-    if (isAuthenticated) {
-        sessionStorage.setItem('habitLogs', JSON.stringify(logs));
-    }
-  }, [logs, isAuthenticated]);
-
-  // Listen for storage changes from other tabs
-  useEffect(() => {
-    const handleStorageChange = (event: StorageEvent) => {
-        if (event.key === 'habits' && event.newValue) {
-            setHabits(JSON.parse(event.newValue));
-        }
-        if (event.key === 'habitLogs' && event.newValue) {
-            setLogs(JSON.parse(event.newValue));
-        }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    return () => {
-        window.removeEventListener('storage', handleStorageChange);
-    };
-  }, []);
-
-  const handleAddHabit = (newHabit: Omit<Habit, 'id'>) => {
-    const habitWithId = { ...newHabit, id: `habit-${Date.now()}` };
-    setHabits((prev) => [...prev, habitWithId]);
-    toast({
-      title: "Kebiasaan Ditambahkan!",
-      description: `"${newHabit.name}" telah ditambahkan ke daftar Anda.`,
+  const handleAddHabit = async (newHabit: Omit<Habit, 'id'>) => {
+    const res = await fetch('/api/habits', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newHabit),
     });
+    if (res.ok) {
+      const habit: Habit = await res.json();
+      setHabits((prev) => [...prev, habit]);
+      toast({
+        title: "Kebiasaan Ditambahkan!",
+        description: `"${habit.name}" telah ditambahkan ke daftar Anda.`,
+      });
+    }
   };
 
-  const handleLogHabit = (
+  const handleLogHabit = async (
     habitId: string,
     date: string,
     completed: boolean,
     details: { journal?: string; reasonForMiss?: string }
   ) => {
-    setLogs((prevLogs) => {
-      const existingLogIndex = prevLogs.findIndex(
-        (log) => log.habitId === habitId && log.date === date
-      );
-
-      if (existingLogIndex > -1) {
-        const updatedLogs = [...prevLogs];
-        const currentLog = updatedLogs[existingLogIndex];
-        updatedLogs[existingLogIndex] = {
-          ...currentLog,
-          completed,
-          journal: completed ? details.journal : currentLog.journal,
-          reasonForMiss: !completed ? details.reasonForMiss : currentLog.reasonForMiss,
-        };
-        return updatedLogs;
-      } else {
-        const newLog: HabitLog = {
-          id: `log-${Date.now()}`,
-          habitId,
-          date,
-          completed,
-          ...details,
-        };
-        return [...prevLogs, newLog];
-      }
+    const res = await fetch('/api/habit-logs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ habitId, date, completed, ...details }),
     });
-    toast({
-      title: "Log Diperbarui!",
-      description: `Progres Anda untuk hari ini telah disimpan.`,
-    });
+    if (res.ok) {
+      const log: HabitLog = await res.json();
+      setLogs((prevLogs) => {
+        const index = prevLogs.findIndex((l) => l.id === log.id);
+        if (index > -1) {
+          const updated = [...prevLogs];
+          updated[index] = log;
+          return updated;
+        }
+        return [...prevLogs, log];
+      });
+      toast({
+        title: "Log Diperbarui!",
+        description: `Progres Anda untuk hari ini telah disimpan.`,
+      });
+    }
   };
   
   if (!isAuthenticated) {
