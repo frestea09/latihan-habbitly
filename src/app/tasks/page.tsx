@@ -4,7 +4,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { SidebarProvider, Sidebar, SidebarInset, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger } from '@/components/ui/sidebar';
-import { LayoutDashboard, BarChart3, Settings, ListTodo, Plus, Trash2, ArrowUp, ArrowDown, ChevronDown, Wallet, BookOpen } from 'lucide-react';
+import { LayoutDashboard, BarChart3, Settings, ListTodo, Plus, Trash2, ArrowUp, ArrowDown, ChevronDown, Wallet, BookOpen, ListChecks } from 'lucide-react';
 import Footer from '@/components/organisms/footer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -28,6 +28,7 @@ type Task = {
   title: string;
   description?: string;
   completed: boolean;
+  position: number;
 };
 
 export default function TasksPage() {
@@ -50,6 +51,13 @@ export default function TasksPage() {
       setIsAuthenticated(true);
     }
   }, [router]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    fetch('/api/tasks')
+      .then(res => res.json())
+      .then((data: Task[]) => setTasks(data));
+  }, [isAuthenticated]);
   
   useEffect(() => {
     if (movedTaskId) {
@@ -59,60 +67,93 @@ export default function TasksPage() {
   }, [movedTaskId]);
 
 
-  const handleAddTask = (e: React.FormEvent) => {
+  const handleAddTask = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newTaskTitle.trim() === '') return;
-    const task: Task = {
-      id: `task-${Date.now()}`,
-      title: newTaskTitle.trim(),
-      description: newTaskDescription.trim(),
-      completed: false,
-    };
-    setTasks(prev => [task, ...prev]);
-    setNewTaskTitle('');
-    setNewTaskDescription('');
-  };
-
-  const handleUpdateTask = () => {
-    if (!editingTask) return;
-    setTasks(prev =>
-      prev.map(task =>
-        task.id === editingTask.id ? editingTask : task
-      )
-    );
-    setEditingTask(null);
-  };
-
-  const handleToggleTask = (taskId: string) => {
-    setTasks(prev =>
-      prev.map(task =>
-        task.id === taskId ? { ...task, completed: !task.completed } : task
-      )
-    );
-  };
-
-  const handleDeleteTask = (taskId: string) => {
-    setTasks(prev => prev.filter(task => task.id !== taskId));
-    setEditingTask(null);
-  };
-
-  const handleMoveTask = (taskId: string, direction: 'up' | 'down') => {
-    setTasks(prev => {
-      const taskIndex = prev.findIndex(t => t.id === taskId);
-      if (taskIndex === -1) return prev;
-
-      const newTasks = [...prev];
-      const task = newTasks[taskIndex];
-      const swapIndex = direction === 'up' ? taskIndex - 1 : taskIndex + 1;
-
-      if (swapIndex < 0 || swapIndex >= newTasks.length) return prev;
-
-      newTasks[taskIndex] = newTasks[swapIndex];
-      newTasks[swapIndex] = task;
-
-      setMovedTaskId(taskId);
-      return newTasks;
+    const res = await fetch('/api/tasks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: newTaskTitle.trim(),
+        description: newTaskDescription.trim(),
+      }),
     });
+    if (res.ok) {
+      const created: Task = await res.json();
+      setTasks(prev => [...prev, created]);
+      setNewTaskTitle('');
+      setNewTaskDescription('');
+    }
+  };
+
+  const handleUpdateTask = async () => {
+    if (!editingTask) return;
+    const res = await fetch(`/api/tasks/${editingTask.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: editingTask.title,
+        description: editingTask.description,
+      }),
+    });
+    if (res.ok) {
+      const updated: Task = await res.json();
+      setTasks(prev =>
+        prev.map(task =>
+          task.id === updated.id ? updated : task
+        )
+      );
+      setEditingTask(null);
+    }
+  };
+
+  const handleToggleTask = async (taskId: string) => {
+    const current = tasks.find(t => t.id === taskId);
+    if (!current) return;
+    const res = await fetch(`/api/tasks/${taskId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ completed: !current.completed }),
+    });
+    if (res.ok) {
+      const updated: Task = await res.json();
+      setTasks(prev =>
+        prev.map(task =>
+          task.id === updated.id ? updated : task
+        )
+      );
+    }
+  };
+
+  const handleDeleteTask = async (taskId: string) => {
+    const res = await fetch(`/api/tasks/${taskId}`, { method: 'DELETE' });
+    if (res.ok) {
+      setTasks(prev => prev.filter(task => task.id !== taskId));
+      setEditingTask(null);
+    }
+  };
+
+  const handleMoveTask = async (taskId: string, direction: 'up' | 'down') => {
+    const taskIndex = tasks.findIndex(t => t.id === taskId);
+    if (taskIndex === -1) return;
+
+    const newTasks = [...tasks];
+    const swapIndex = direction === 'up' ? taskIndex - 1 : taskIndex + 1;
+    if (swapIndex < 0 || swapIndex >= newTasks.length) return;
+
+    [newTasks[taskIndex], newTasks[swapIndex]] = [newTasks[swapIndex], newTasks[taskIndex]];
+    const withPositions = newTasks.map((t, idx) => ({ ...t, position: idx }));
+    setTasks(withPositions);
+    setMovedTaskId(taskId);
+    await Promise.all(
+      withPositions.map(t =>
+        fetch(`/api/tasks/${t.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ position: t.position }),
+        })
+      )
+    );
   };
   
   if (!isAuthenticated) {
@@ -153,6 +194,12 @@ export default function TasksPage() {
                     <SidebarMenuButton href="/tasks" variant="outline" size="sm" isActive>
                       <ListTodo />
                       <span>Tugas Harian</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton href="/habits" variant="outline" size="sm">
+                      <ListChecks />
+                      <span>Manajemen Kebiasaan</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>

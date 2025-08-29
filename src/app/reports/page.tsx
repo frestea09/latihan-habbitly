@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { initialHabits, initialLogs } from '@/lib/data';
 import type { Habit, HabitLog, HabitWithLogs, TimeRange } from '@/lib/types';
 import { SidebarProvider, Sidebar, SidebarInset, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger } from '@/components/ui/sidebar';
-import { LayoutDashboard, BarChart3, Settings, ListTodo, Download, Printer, ChevronDown, Wallet, BookOpen } from 'lucide-react';
+import { LayoutDashboard, BarChart3, Settings, ListTodo, Download, Printer, ChevronDown, Wallet, BookOpen, ListChecks } from 'lucide-react';
 import Footer from '@/components/organisms/footer';
 import ReportCard from '@/components/organisms/report-card';
 import { useToast } from '@/hooks/use-toast';
@@ -160,6 +160,12 @@ export default function ReportsPage() {
                     <SidebarMenuButton href="/tasks" variant="outline" size="sm">
                       <ListTodo />
                       <span>Tugas Harian</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton href="/habits" variant="outline" size="sm">
+                      <ListChecks />
+                      <span>Manajemen Kebiasaan</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
