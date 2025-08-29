@@ -1,4 +1,5 @@
-export type HabitCategory = 'morning' | 'after_dhuhr' | 'afternoon_evening' | 'sleep_prep' | 'all';
+export type HabitCategory = 'morning' | 'after_dhuhr' | 'afternoon_evening' | 'sleep_prep';
+export type HabitCategoryWithAll = HabitCategory | 'all';
 
 export type Habit = {
   id: string;

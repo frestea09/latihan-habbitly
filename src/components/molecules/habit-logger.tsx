@@ -15,7 +15,9 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { ThumbsDown, ThumbsUp, CheckCircle2, XCircle, PencilLine } from 'lucide-react';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { ThumbsDown, ThumbsUp, CheckCircle2, XCircle, PencilLine, Loader2 } from 'lucide-react';
 
 type HabitLoggerProps = {
   habitId: string;
@@ -42,6 +44,7 @@ export default function HabitLogger({
   onLogHabit,
 }: HabitLoggerProps) {
   const [dialogState, setDialogState] = useState<DialogState>({ open: false, type: null, text: '' });
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleOpenDialog = (type: 'journal' | 'reason' | 'edit_journal' | 'edit_reason') => {
     let text = '';
@@ -53,13 +56,15 @@ export default function HabitLogger({
     setDialogState({ open: true, type, text });
   };
   
-  const handleSave = () => {
+  const handleSave = async () => {
     if (dialogState.type) {
+      setIsSaving(true);
       const completed = dialogState.type === 'journal' || dialogState.type === 'edit_journal';
-      const details = completed 
-        ? { journal: dialogState.text } 
+      const details = completed
+        ? { journal: dialogState.text }
         : { reasonForMiss: dialogState.text };
-      onLogHabit(habitId, date, completed, details);
+      await onLogHabit(habitId, date, completed, details);
+      setIsSaving(false);
     }
     setDialogState({ open: false, type: null, text: '' });
   };
@@ -89,26 +94,43 @@ export default function HabitLogger({
         <Dialog open={dialogState.open && (dialogState.type === 'edit_journal' || dialogState.type === 'edit_reason')} onOpenChange={(open) => setDialogState(prev => ({ ...prev, open }))}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>
-                {dialogState.type === 'edit_journal' ? 'Edit jurnalmu' : 'Edit alasanmu'}
-              </DialogTitle>
-              <DialogDescription>
-                {dialogState.type === 'edit_journal'
-                  ? 'Perbarui ceritamu tentang pencapaianmu hari ini.'
-                  : "Perbarui alasan mengapa kamu melewatkannya hari ini."}
-              </DialogDescription>
+              <DialogTitle>Edit log harian</DialogTitle>
+              <DialogDescription>Perbarui status dan catatan hari ini.</DialogDescription>
             </DialogHeader>
+            <RadioGroup
+              value={dialogState.type as 'edit_journal' | 'edit_reason'}
+              onValueChange={(value) =>
+                setDialogState((prev) => ({ ...prev, type: value as 'edit_journal' | 'edit_reason', text: '' }))
+              }
+              className="flex gap-4 mb-4"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="edit_journal" id="edit-completed" />
+                <Label htmlFor="edit-completed">Selesai</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="edit_reason" id="edit-missed" />
+                <Label htmlFor="edit-missed">Terlewat</Label>
+              </div>
+            </RadioGroup>
             <Textarea
               value={dialogState.text}
               onChange={(e) => setDialogState(prev => ({ ...prev, text: e.target.value }))}
-              placeholder="Tuliskan catatanmu di sini..."
+              placeholder={
+                dialogState.type === 'edit_journal'
+                  ? 'Tuliskan catatanmu di sini...'
+                  : 'Tuliskan alasanmu di sini...'
+              }
               rows={4}
             />
             <DialogFooter>
               <DialogClose asChild>
                 <Button type="button" variant="secondary">Batal</Button>
               </DialogClose>
-              <Button onClick={handleSave}>Simpan Perubahan</Button>
+              <Button onClick={handleSave} disabled={isSaving}>
+                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Simpan Perubahan
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -152,7 +174,10 @@ export default function HabitLogger({
               <DialogClose asChild>
                 <Button type="button" variant="secondary">Batal</Button>
               </DialogClose>
-              <Button onClick={handleSave}>Simpan</Button>
+              <Button onClick={handleSave} disabled={isSaving}>
+                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Simpan
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

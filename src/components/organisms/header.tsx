@@ -31,7 +31,7 @@ import {
 
 
 type HeaderProps = {
-  onAddHabit: (habit: Omit<Habit, 'id'>) => void;
+  onAddHabit: (habit: Omit<Habit, 'id'>) => Promise<void>;
 };
 
 export default function Header({ onAddHabit }: HeaderProps) {

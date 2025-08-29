@@ -1,24 +1,23 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Fragment } from 'react';
 import { useRouter } from 'next/navigation';
 import { SidebarProvider, Sidebar, SidebarInset, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger } from '@/components/ui/sidebar';
-import { LayoutDashboard, BarChart3, Settings, ListTodo, ChevronDown, Wallet, BookOpen, Plus, Trash2, Edit } from 'lucide-react';
+import { LayoutDashboard, BarChart3, Settings, ListTodo, ChevronDown, Wallet, BookOpen, Plus, Trash2, Edit, Loader2 } from 'lucide-react';
 import Footer from '@/components/organisms/footer';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
 import { useToast } from '@/hooks/use-toast';
 import AddHabitForm from '@/components/molecules/add-habit-form';
-import type { Habit, HabitCategory } from '@/lib/types';
-import { initialHabits } from '@/lib/data';
+import type { Habit, HabitCategory, HabitCategoryWithAll } from '@/lib/types';
 import { Separator } from '@/components/ui/separator';
 
-const CATEGORY_MAP: Record<HabitCategory, string> = {
+const CATEGORY_MAP: Record<HabitCategoryWithAll, string> = {
     morning: 'Pagi',
     after_dhuhr: 'Setelah Dzuhur',
     afternoon_evening: 'Sore & Malam',
@@ -37,6 +36,18 @@ export default function HabitsPage() {
     const [habits, setHabits] = useState<Habit[]>([]);
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [deletingId, setDeletingId] = useState<string | null>(null);
+
+    const loadHabits = async () => {
+        setIsLoading(true);
+        const res = await fetch('/api/habits', { cache: 'no-store' });
+        if (res.ok) {
+            const data = await res.json();
+            setHabits(data);
+        }
+        setIsLoading(false);
+    };
 
     useEffect(() => {
         const loggedIn = sessionStorage.getItem('isLoggedIn');
@@ -44,45 +55,57 @@ export default function HabitsPage() {
             router.push('/login');
         } else {
             setIsAuthenticated(true);
-            const storedHabits = sessionStorage.getItem('habits');
-            setHabits(storedHabits ? JSON.parse(storedHabits) : initialHabits);
+            loadHabits();
         }
     }, [router]);
-
-    useEffect(() => {
-        if(isAuthenticated) {
-            sessionStorage.setItem('habits', JSON.stringify(habits));
-        }
-    }, [habits, isAuthenticated]);
     
-    const handleAddHabit = (newHabitData: Omit<Habit, 'id'>) => {
-        const newHabit = { ...newHabitData, id: `habit-${Date.now()}` };
-        setHabits(prev => [...prev, newHabit]);
-        toast({
-          title: "Kebiasaan Ditambahkan!",
-          description: `"${newHabit.name}" telah ditambahkan.`,
+    const handleAddHabit = async (newHabitData: Omit<Habit, 'id'>) => {
+        const res = await fetch('/api/habits', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newHabitData),
         });
-        setIsAddDialogOpen(false); // Close dialog on success
+        if (res.ok) {
+            const habit = await res.json();
+            setHabits(prev => [...prev, habit]);
+            toast({
+                title: "Kebiasaan Ditambahkan!",
+                description: `"${habit.name}" telah ditambahkan.`,
+            });
+        }
     };
 
-    const handleUpdateHabit = (updatedHabitData: Omit<Habit, 'id'>) => {
+    const handleUpdateHabit = async (updatedHabitData: Omit<Habit, 'id'>) => {
         if (!editingHabit) return;
-        setHabits(prev => prev.map(h => h.id === editingHabit.id ? { ...h, ...updatedHabitData } : h));
-        toast({
-          title: "Kebiasaan Diperbarui!",
-          description: `"${updatedHabitData.name}" telah berhasil diubah.`,
+        const res = await fetch(`/api/habits/${editingHabit.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updatedHabitData),
         });
-        setEditingHabit(null);
+        if (res.ok) {
+            const habit = await res.json();
+            setHabits(prev => prev.map(h => h.id === habit.id ? habit : h));
+            toast({
+                title: "Kebiasaan Diperbarui!",
+                description: `"${habit.name}" telah berhasil diubah.`,
+            });
+            setEditingHabit(null);
+        }
     };
 
-    const handleDeleteHabit = (habitId: string) => {
+    const handleDeleteHabit = async (habitId: string) => {
+        setDeletingId(habitId);
         const habitToDelete = habits.find(h => h.id === habitId);
-        setHabits(prev => prev.filter(h => h.id !== habitId));
-        toast({
-          title: "Kebiasaan Dihapus!",
-          description: `"${habitToDelete?.name}" telah dihapus.`,
-          variant: "destructive"
-        });
+        const res = await fetch(`/api/habits/${habitId}`, { method: 'DELETE' });
+        if (res.ok) {
+            await loadHabits();
+            toast({
+                title: "Kebiasaan Dihapus!",
+                description: `'${habitToDelete?.name}' telah dihapus.`,
+                variant: "destructive",
+            });
+        }
+        setDeletingId(null);
     };
     
     const groupedHabits = habits.reduce((acc, habit) => {
@@ -91,7 +114,7 @@ export default function HabitsPage() {
     }, {} as Record<HabitCategory, Habit[]>);
     
 
-    if (!isAuthenticated) {
+    if (!isAuthenticated || isLoading) {
         return <div className="flex h-screen items-center justify-center bg-background"><p>Memuat...</p></div>;
     }
 
@@ -247,9 +270,9 @@ export default function HabitsPage() {
                                         <CardContent>
                                             <ul className="space-y-3">
                                                 {groupedHabits[category as HabitCategory].map((habit, index) => (
-                                                   <>
+                                                   <Fragment key={habit.id}>
                                                    {index > 0 && <Separator />}
-                                                    <li key={habit.id} className="flex items-center justify-between py-2">
+                                                    <li className="flex items-center justify-between py-2">
                                                         <span className="font-medium text-lg">{habit.name}</span>
                                                         <div className="flex items-center gap-2">
                                                             <Button variant="outline" size="sm" onClick={() => setEditingHabit(habit)}>
@@ -270,15 +293,16 @@ export default function HabitsPage() {
                                                                     </AlertDialogHeader>
                                                                     <AlertDialogFooter>
                                                                         <AlertDialogCancel>Batal</AlertDialogCancel>
-                                                                        <AlertDialogAction onClick={() => handleDeleteHabit(habit.id)}>
-                                                                            Ya, Hapus
+                                                                        <AlertDialogAction onClick={() => handleDeleteHabit(habit.id)} disabled={deletingId === habit.id}>
+                                                                            {deletingId === habit.id && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                                                            {deletingId === habit.id ? 'Menghapus...' : 'Ya, Hapus'}
                                                                         </AlertDialogAction>
                                                                     </AlertDialogFooter>
                                                                 </AlertDialogContent>
                                                             </AlertDialog>
                                                         </div>
                                                     </li>
-                                                   </>
+                                                   </Fragment>
                                                 ))}
                                             </ul>
                                         </CardContent>

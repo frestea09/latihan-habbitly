@@ -130,8 +130,13 @@ export default function ReportsPage() {
         return;
     }
 
-    const csvContent = "data:text/csv;charset=utf-8," 
-        + [Object.keys(dataToExport[0]), ...dataToExport.map(item => Object.values(item).map(val => `"${String(val).replace(/"/g, '""')}"`).join(","))].map(e => e.join(",")).join("\n");
+    const rows: string[][] = [
+        Object.keys(dataToExport[0]),
+        ...dataToExport.map(item =>
+            Object.values(item).map(val => `"${String(val).replace(/"/g, '""')}"`)
+        ),
+    ];
+    const csvContent = "data:text/csv;charset=utf-8," + rows.map(row => row.join(",")).join("\n");
 
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
