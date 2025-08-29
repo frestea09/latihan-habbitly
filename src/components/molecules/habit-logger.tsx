@@ -15,7 +15,7 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
-import { ThumbsDown, ThumbsUp, CheckCircle2, XCircle, PencilLine } from 'lucide-react';
+import { ThumbsDown, ThumbsUp, CheckCircle2, XCircle, PencilLine, Loader2 } from 'lucide-react';
 
 type HabitLoggerProps = {
   habitId: string;
@@ -42,6 +42,7 @@ export default function HabitLogger({
   onLogHabit,
 }: HabitLoggerProps) {
   const [dialogState, setDialogState] = useState<DialogState>({ open: false, type: null, text: '' });
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleOpenDialog = (type: 'journal' | 'reason' | 'edit_journal' | 'edit_reason') => {
     let text = '';
@@ -53,13 +54,15 @@ export default function HabitLogger({
     setDialogState({ open: true, type, text });
   };
   
-  const handleSave = () => {
+  const handleSave = async () => {
     if (dialogState.type) {
+      setIsSaving(true);
       const completed = dialogState.type === 'journal' || dialogState.type === 'edit_journal';
-      const details = completed 
-        ? { journal: dialogState.text } 
+      const details = completed
+        ? { journal: dialogState.text }
         : { reasonForMiss: dialogState.text };
-      onLogHabit(habitId, date, completed, details);
+      await onLogHabit(habitId, date, completed, details);
+      setIsSaving(false);
     }
     setDialogState({ open: false, type: null, text: '' });
   };
@@ -108,7 +111,10 @@ export default function HabitLogger({
               <DialogClose asChild>
                 <Button type="button" variant="secondary">Batal</Button>
               </DialogClose>
-              <Button onClick={handleSave}>Simpan Perubahan</Button>
+              <Button onClick={handleSave} disabled={isSaving}>
+                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Simpan Perubahan
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -152,7 +158,10 @@ export default function HabitLogger({
               <DialogClose asChild>
                 <Button type="button" variant="secondary">Batal</Button>
               </DialogClose>
-              <Button onClick={handleSave}>Simpan</Button>
+              <Button onClick={handleSave} disabled={isSaving}>
+                {isSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                Simpan
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>

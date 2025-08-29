@@ -46,6 +46,7 @@ export default function Home() {
   const { toast } = useToast();
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [viewMode, setViewMode] = useState<ViewMode>('focus');
   const [isActivityOpen, setIsActivityOpen] = useState(true);
   const [isFinanceOpen, setIsFinanceOpen] = useState(false);
@@ -63,13 +64,16 @@ export default function Home() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      fetch('/api/habits')
-        .then((res) => res.json())
-        .then(setHabits);
+      setIsLoading(true);
       const today = new Date().toISOString().split('T')[0];
-      fetch(`/api/habit-logs?date=${today}`)
-        .then((res) => res.json())
-        .then(setLogs);
+      Promise.all([
+        fetch('/api/habits').then(res => res.json()),
+        fetch(`/api/habit-logs?date=${today}`).then(res => res.json())
+      ]).then(([habitsData, logsData]) => {
+        setHabits(habitsData);
+        setLogs(logsData);
+        setIsLoading(false);
+      });
     }
   }, [isAuthenticated]);
 
@@ -118,7 +122,7 @@ export default function Home() {
     }
   };
   
-  if (!isAuthenticated) {
+  if (!isAuthenticated || isLoading) {
     return (
       <div className="flex h-screen items-center justify-center bg-background">
         <p>Memuat...</p>

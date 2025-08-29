@@ -4,7 +4,7 @@
 import { useEffect, useState, Fragment } from 'react';
 import { useRouter } from 'next/navigation';
 import { SidebarProvider, Sidebar, SidebarInset, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger } from '@/components/ui/sidebar';
-import { LayoutDashboard, BarChart3, Settings, ListTodo, ChevronDown, Wallet, BookOpen, Plus, Trash2, Edit } from 'lucide-react';
+import { LayoutDashboard, BarChart3, Settings, ListTodo, ChevronDown, Wallet, BookOpen, Plus, Trash2, Edit, Loader2 } from 'lucide-react';
 import Footer from '@/components/organisms/footer';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
@@ -36,13 +36,17 @@ export default function HabitsPage() {
     const [habits, setHabits] = useState<Habit[]>([]);
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [editingHabit, setEditingHabit] = useState<Habit | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [deletingId, setDeletingId] = useState<string | null>(null);
 
     const loadHabits = async () => {
+        setIsLoading(true);
         const res = await fetch('/api/habits', { cache: 'no-store' });
         if (res.ok) {
             const data = await res.json();
             setHabits(data);
         }
+        setIsLoading(false);
     };
 
     useEffect(() => {
@@ -90,16 +94,18 @@ export default function HabitsPage() {
     };
 
     const handleDeleteHabit = async (habitId: string) => {
+        setDeletingId(habitId);
         const habitToDelete = habits.find(h => h.id === habitId);
         const res = await fetch(`/api/habits/${habitId}`, { method: 'DELETE' });
         if (res.ok) {
             await loadHabits();
             toast({
                 title: "Kebiasaan Dihapus!",
-                description: `"${habitToDelete?.name}" telah dihapus.`,
+                description: `'${habitToDelete?.name}' telah dihapus.`,
                 variant: "destructive",
             });
         }
+        setDeletingId(null);
     };
     
     const groupedHabits = habits.reduce((acc, habit) => {
@@ -108,7 +114,7 @@ export default function HabitsPage() {
     }, {} as Record<HabitCategory, Habit[]>);
     
 
-    if (!isAuthenticated) {
+    if (!isAuthenticated || isLoading) {
         return <div className="flex h-screen items-center justify-center bg-background"><p>Memuat...</p></div>;
     }
 
@@ -287,8 +293,9 @@ export default function HabitsPage() {
                                                                     </AlertDialogHeader>
                                                                     <AlertDialogFooter>
                                                                         <AlertDialogCancel>Batal</AlertDialogCancel>
-                                                                        <AlertDialogAction onClick={() => handleDeleteHabit(habit.id)}>
-                                                                            Ya, Hapus
+                                                                        <AlertDialogAction onClick={() => handleDeleteHabit(habit.id)} disabled={deletingId === habit.id}>
+                                                                            {deletingId === habit.id && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                                                                            {deletingId === habit.id ? 'Menghapus...' : 'Ya, Hapus'}
                                                                         </AlertDialogAction>
                                                                     </AlertDialogFooter>
                                                                 </AlertDialogContent>

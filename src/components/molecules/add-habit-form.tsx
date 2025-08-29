@@ -23,7 +23,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import type { Habit, HabitCategory } from '@/lib/types';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { Loader2 } from 'lucide-react';
 
 const formSchema = z.object({
   name: z.string().min(3, 'Nama kebiasaan minimal 3 karakter.'),
@@ -44,6 +45,7 @@ export default function AddHabitForm({ onAddHabit, setDialogOpen, initialData }:
       category: initialData?.category || 'morning',
     },
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   useEffect(() => {
     if (initialData) {
@@ -52,10 +54,12 @@ export default function AddHabitForm({ onAddHabit, setDialogOpen, initialData }:
   }, [initialData, form]);
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsSubmitting(true);
     await onAddHabit({
       name: values.name,
       category: values.category as HabitCategory,
     });
+    setIsSubmitting(false);
     form.reset();
     setDialogOpen(false);
   }
@@ -101,7 +105,8 @@ export default function AddHabitForm({ onAddHabit, setDialogOpen, initialData }:
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full h-11">
+        <Button type="submit" className="w-full h-11" disabled={isSubmitting}>
+          {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           {isEditing ? 'Simpan Perubahan' : 'Tambah Kebiasaan'}
         </Button>
       </form>
