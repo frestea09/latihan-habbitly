@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { SidebarProvider, Sidebar, SidebarInset, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger } from '@/components/ui/sidebar';
 import { LayoutDashboard, BarChart3, Settings, ListTodo, ChevronDown, Wallet, BookOpen } from 'lucide-react';
@@ -49,6 +50,62 @@ export default function FinanceReportsPage() {
       }
     }
   }, [router]);
+
+  const filteredTransactions = useMemo(() => {
+    return transactions.filter(tx => {
+      const today = new Date();
+      const txDate = new Date(tx.date);
+      
+      switch (filter) {
+          case 'this-month':
+              return txDate.getMonth() === today.getMonth() && txDate.getFullYear() === today.getFullYear();
+          case 'last-month': {
+              const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+              return txDate.getMonth() === lastMonth.getMonth() && txDate.getFullYear() === lastMonth.getFullYear();
+          }
+          case 'all':
+          default:
+              return true;
+      }
+    });
+  }, [transactions, filter]);
+
+  const barChartData = useMemo(() => {
+    const getMonthlySummary = (txs: Transaction[]): { month: string, pemasukan: number, pengeluaran: number }[] => {
+      const summary: Record<string, { pemasukan: number, pengeluaran: number }> = {};
+
+      txs.forEach(tx => {
+          const month = new Date(tx.date).toLocaleString('id-ID', { month: 'short', year: '2-digit' });
+          if (!summary[month]) {
+              summary[month] = { pemasukan: 0, pengeluaran: 0 };
+          }
+          if (tx.type === 'income') {
+              summary[month].pemasukan += tx.amount;
+          } else {
+              summary[month].pengeluaran += tx.amount;
+          }
+      });
+
+      return Object.entries(summary).map(([month, data]) => ({ month, ...data })).reverse();
+    };
+    return getMonthlySummary(filteredTransactions);
+  }, [filteredTransactions]);
+
+  const pieChartData = useMemo(() => {
+     const getCategorySummary = (txs: Transaction[]): { name: string, value: number }[] => {
+        const summary: Record<string, number> = {};
+        
+        txs.filter(tx => tx.type === 'expense').forEach(tx => {
+            if (!summary[tx.category]) {
+                summary[tx.category] = 0;
+            }
+            summary[tx.category] += tx.amount;
+        });
+
+        return Object.entries(summary).map(([name, value]) => ({ name, value })).sort((a,b) => b.value - a.value);
+    }
+    return getCategorySummary(filteredTransactions);
+  }, [filteredTransactions]);
   
   if (!isAuthenticated) {
     return (
@@ -57,61 +114,10 @@ export default function FinanceReportsPage() {
       </div>
     );
   }
-
-  const filteredTransactions = transactions.filter(tx => {
-    const today = new Date();
-    const txDate = new Date(tx.date);
-    
-    switch (filter) {
-        case 'this-month':
-            return txDate.getMonth() === today.getMonth() && txDate.getFullYear() === today.getFullYear();
-        case 'last-month': {
-            const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-            return txDate.getMonth() === lastMonth.getMonth() && txDate.getFullYear() === lastMonth.getFullYear();
-        }
-        case 'all':
-        default:
-            return true;
-    }
-  });
   
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
   };
-
-  const getMonthlySummary = (txs: Transaction[]): { month: string, pemasukan: number, pengeluaran: number }[] => {
-    const summary: Record<string, { pemasukan: number, pengeluaran: number }> = {};
-
-    txs.forEach(tx => {
-        const month = new Date(tx.date).toLocaleString('id-ID', { month: 'short', year: '2-digit' });
-        if (!summary[month]) {
-            summary[month] = { pemasukan: 0, pengeluaran: 0 };
-        }
-        if (tx.type === 'income') {
-            summary[month].pemasukan += tx.amount;
-        } else {
-            summary[month].pengeluaran += tx.amount;
-        }
-    });
-
-    return Object.entries(summary).map(([month, data]) => ({ month, ...data })).reverse();
-  };
-  
-  const getCategorySummary = (txs: Transaction[]): { name: string, value: number }[] => {
-      const summary: Record<string, number> = {};
-      
-      txs.filter(tx => tx.type === 'expense').forEach(tx => {
-          if (!summary[tx.category]) {
-              summary[tx.category] = 0;
-          }
-          summary[tx.category] += tx.amount;
-      });
-
-      return Object.entries(summary).map(([name, value]) => ({ name, value })).sort((a,b) => b.value - a.value);
-  }
-
-  const barChartData = getMonthlySummary(filteredTransactions);
-  const pieChartData = getCategorySummary(filteredTransactions);
   
   return (
     <SidebarProvider>
