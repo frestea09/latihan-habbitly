@@ -17,6 +17,10 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import type { Transaction } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
+
+type FilterRange = 'this-month' | 'last-month' | 'last-7-days' | 'all';
 
 const defaultCategories = {
   expense: ['Makanan', 'Transportasi', 'Tagihan', 'Hiburan', 'Belanja', 'Kesehatan', 'Lainnya'],
@@ -32,6 +36,7 @@ export default function FinancePage() {
   
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [filter, setFilter] = useState<FilterRange>('this-month');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -82,8 +87,30 @@ export default function FinancePage() {
       variant: "destructive"
     });
   }
+  
+  const filteredTransactions = transactions.filter(tx => {
+    const today = new Date();
+    const txDate = new Date(tx.date);
+    
+    switch (filter) {
+        case 'this-month':
+            return txDate.getMonth() === today.getMonth() && txDate.getFullYear() === today.getFullYear();
+        case 'last-month': {
+            const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+            return txDate.getMonth() === lastMonth.getMonth() && txDate.getFullYear() === lastMonth.getFullYear();
+        }
+        case 'last-7-days': {
+            const sevenDaysAgo = new Date();
+            sevenDaysAgo.setDate(today.getDate() - 7);
+            return txDate >= sevenDaysAgo && txDate <= today;
+        }
+        case 'all':
+        default:
+            return true;
+    }
+  });
 
-  const { totalIncome, totalExpense, balance } = transactions.reduce(
+  const { totalIncome, totalExpense, balance } = filteredTransactions.reduce(
     (acc, curr) => {
       if (curr.type === 'income') {
         acc.totalIncome += curr.amount;
@@ -100,7 +127,7 @@ export default function FinancePage() {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
   };
   
-   const groupedTransactions = transactions.reduce((acc, tx) => {
+   const groupedTransactions = filteredTransactions.reduce((acc, tx) => {
     const date = tx.date;
     if (!acc[date]) {
       acc[date] = [];
@@ -286,10 +313,23 @@ export default function FinancePage() {
             
             <Card>
                 <CardHeader>
-                    <CardTitle>Riwayat Transaksi</CardTitle>
+                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div>
+                            <CardTitle>Riwayat Transaksi</CardTitle>
+                            <CardDescription>Tinjau kembali semua catatan keuangan Anda.</CardDescription>
+                        </div>
+                         <Tabs defaultValue={filter} onValueChange={(value) => setFilter(value as FilterRange)} className="w-full sm:w-auto">
+                            <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto sm:h-10">
+                                <TabsTrigger value="this-month">Bulan Ini</TabsTrigger>
+                                <TabsTrigger value="last-month">Bulan Kemarin</TabsTrigger>
+                                <TabsTrigger value="last-7-days">7 Hari</TabsTrigger>
+                                <TabsTrigger value="all">Semua</TabsTrigger>
+                            </TabsList>
+                        </Tabs>
+                    </div>
                 </CardHeader>
                 <CardContent>
-                    {transactions.length > 0 ? (
+                    {filteredTransactions.length > 0 ? (
                         <div className="space-y-6">
                             {Object.keys(groupedTransactions).map((date, index) => (
                                 <div key={date}>
@@ -338,7 +378,7 @@ export default function FinancePage() {
                              ))}
                         </div>
                     ) : (
-                        <p className="text-muted-foreground text-center py-6">Belum ada transaksi. Mulai catat keuangan Anda!</p>
+                        <p className="text-muted-foreground text-center py-6">Tidak ada transaksi pada periode ini.</p>
                     )}
                 </CardContent>
             </Card>
@@ -418,8 +458,7 @@ function AddTransactionForm({ onAddTransaction }: AddTransactionFormProps) {
                     </Select>
                 </div>
                 <div className="space-y-2">
-                    <label htmlFor="category">Kategori</label>
-                     <Select value={category} onValueChange={setCategory}>
+                    <label htmlFor="category">Kategori</label>                     <Select value={category} onValueChange={setCategory}>
                         <SelectTrigger id="category">
                             <SelectValue placeholder="Pilih kategori" />
                         </SelectTrigger>
@@ -511,3 +550,5 @@ function EditTransactionDialog({ transaction, onUpdate, onClose }: EditTransacti
     </Dialog>
   );
 }
+
+    
