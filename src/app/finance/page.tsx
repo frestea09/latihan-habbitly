@@ -16,6 +16,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import type { Transaction } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
+import { Separator } from '@/components/ui/separator';
 
 const defaultCategories = {
   expense: ['Makanan', 'Transportasi', 'Tagihan', 'Hiburan', 'Belanja', 'Kesehatan', 'Lainnya'],
@@ -98,6 +99,28 @@ export default function FinancePage() {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount);
   };
+  
+   const groupedTransactions = transactions.reduce((acc, tx) => {
+    const date = tx.date;
+    if (!acc[date]) {
+      acc[date] = [];
+    }
+    acc[date].push(tx);
+    return acc;
+  }, {} as Record<string, Transaction[]>);
+
+  const formatDateHeader = (dateString: string) => {
+    const date = new Date(dateString);
+    const today = new Date();
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    if (date.toDateString() === today.toDateString()) return 'Hari Ini';
+    if (date.toDateString() === yesterday.toDateString()) return 'Kemarin';
+
+    return new Intl.DateTimeFormat('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(date);
+  };
+
 
   if (!isAuthenticated) {
     return (
@@ -267,43 +290,53 @@ export default function FinancePage() {
                 </CardHeader>
                 <CardContent>
                     {transactions.length > 0 ? (
-                        <ul className="space-y-4">
-                            {transactions.map(tx => (
-                                <li key={tx.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 rounded-lg border bg-background">
-                                    <div className="flex items-center gap-4 mb-2 sm:mb-0">
-                                        <div className={cn("flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center", tx.type === 'income' ? 'bg-green-100' : 'bg-red-100')}>
-                                            <ArrowDownUp className={cn("h-5 w-5", tx.type === 'income' ? 'text-green-600' : 'text-red-600')} />
-                                        </div>
-                                        <div>
-                                            <p className="font-bold text-base">{tx.description}</p>
-                                            <p className="text-sm text-muted-foreground">{new Date(tx.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })} • {tx.category}</p>
-                                        </div>
-                                    </div>
-                                    <div className="flex items-center justify-end gap-2">
-                                       <p className={cn("font-bold text-lg", tx.type === 'income' ? 'text-green-600' : 'text-red-600')}>
-                                           {tx.type === 'income' ? '+' : '-'} {formatCurrency(tx.amount)}
-                                       </p>
-                                       <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
-                                                    <MoreHorizontal className="h-4 w-4" />
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                                <DropdownMenuItem onSelect={() => setEditingTransaction(tx)}>
-                                                    <Pencil className="mr-2 h-4 w-4" />
-                                                    <span>Ubah</span>
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem onSelect={() => handleDeleteTransaction(tx.id)} className="text-red-500">
-                                                    <Trash2 className="mr-2 h-4 w-4" />
-                                                    <span>Hapus</span>
-                                                </DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                    </div>
-                                </li>
-                            ))}
-                        </ul>
+                        <div className="space-y-6">
+                            {Object.keys(groupedTransactions).map((date, index) => (
+                                <div key={date}>
+                                    {index > 0 && <Separator className="mb-4" />}
+                                    <h3 className="text-base font-semibold text-muted-foreground mb-3 sticky top-16 bg-slate-50/80 backdrop-blur-sm py-2 z-[1]">
+                                        {formatDateHeader(date)}
+                                    </h3>
+                                    <ul className="space-y-4">
+                                        {groupedTransactions[date].map(tx => (
+                                            <li key={tx.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 rounded-lg border bg-background">
+                                                <div className="flex items-center gap-4 mb-2 sm:mb-0">
+                                                    <div className={cn("flex-shrink-0 h-10 w-10 rounded-full flex items-center justify-center", tx.type === 'income' ? 'bg-green-100' : 'bg-red-100')}>
+                                                        <ArrowDownUp className={cn("h-5 w-5", tx.type === 'income' ? 'text-green-600' : 'text-red-600')} />
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-bold text-base">{tx.description}</p>
+                                                        <p className="text-sm text-muted-foreground">{tx.category}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center justify-end gap-2">
+                                                <p className={cn("font-bold text-lg", tx.type === 'income' ? 'text-green-600' : 'text-red-600')}>
+                                                    {tx.type === 'income' ? '+' : '-'} {formatCurrency(tx.amount)}
+                                                </p>
+                                                <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <Button variant="ghost" size="icon" className="h-8 w-8 flex-shrink-0">
+                                                                <MoreHorizontal className="h-4 w-4" />
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end">
+                                                            <DropdownMenuItem onSelect={() => setEditingTransaction(tx)}>
+                                                                <Pencil className="mr-2 h-4 w-4" />
+                                                                <span>Ubah</span>
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem onSelect={() => handleDeleteTransaction(tx.id)} className="text-red-500">
+                                                                <Trash2 className="mr-2 h-4 w-4" />
+                                                                <span>Hapus</span>
+                                                            </DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                </div>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                             ))}
+                        </div>
                     ) : (
                         <p className="text-muted-foreground text-center py-6">Belum ada transaksi. Mulai catat keuangan Anda!</p>
                     )}
