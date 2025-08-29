@@ -2,11 +2,11 @@ import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 
 interface Params {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export async function PUT(request: Request, { params }: Params) {
-  const { id } = params;
+  const { id } = await params;
   const { name, category } = await request.json();
   const habit = await prisma.habit.update({
     where: { id },
@@ -16,7 +16,7 @@ export async function PUT(request: Request, { params }: Params) {
 }
 
 export async function DELETE(_request: Request, { params }: Params) {
-  const { id } = params;
+  const { id } = await params;
   await prisma.habit.delete({ where: { id } });
   return new NextResponse(null, { status: 204 });
 }
