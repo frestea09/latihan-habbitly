@@ -5,6 +5,7 @@ import type { LearningRoadmap } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import { Check, X } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 type LearningReportCardProps = {
   roadmap: LearningRoadmap;
