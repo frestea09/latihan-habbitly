@@ -1,0 +1,95 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql" // or "mysql", "sqlite", "sqlserver", "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String            @id @default(cuid())
+  username        String            @unique
+  password        String // In a real app, this would be a hashed password
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  habits          Habit[]
+  tasks           Task[]
+  learningRoadmaps LearningRoadmap[]
+  transactions    Transaction[]
+}
+
+model Habit {
+  id        String      @id @default(cuid())
+  name      String
+  category  String // 'morning', 'after_dhuhr', etc.
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  userId    String
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  logs      HabitLog[]
+}
+
+model HabitLog {
+  id            String    @id @default(cuid())
+  date          DateTime  @db.Date
+  completed     Boolean
+  journal       String?
+  reasonForMiss String?
+  habitId       String
+  habit         Habit     @relation(fields: [habitId], references: [id], onDelete: Cascade)
+
+  @@unique([habitId, date])
+}
+
+model Task {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  completed   Boolean  @default(false)
+  position    Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model LearningRoadmap {
+  id        String         @id @default(cuid())
+  topic     String
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  userId    String
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  steps     LearningStep[]
+}
+
+model LearningStep {
+  id          String          @id @default(cuid())
+  title       String
+  description String?
+  completed   Boolean         @default(false)
+  roadmapId   String
+  roadmap     LearningRoadmap @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
+}
+
+enum TransactionType {
+  income
+  expense
+}
+
+model Transaction {
+  id          String          @id @default(cuid())
+  date        DateTime        @db.Date
+  type        TransactionType
+  amount      Float
+  category    String
+  description String
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  userId      String
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
