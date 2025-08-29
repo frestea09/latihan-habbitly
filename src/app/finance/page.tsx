@@ -1,10 +1,9 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { SidebarProvider, Sidebar, SidebarInset, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton, SidebarTrigger } from '@/components/ui/sidebar';
-import { LayoutDashboard, BarChart3, Settings, ListTodo, ChevronDown, Wallet, BookOpen, Plus, MoreHorizontal, Trash2, Pencil, ArrowDownUp } from 'lucide-react';
+import { LayoutDashboard, BarChart3, Settings, ListTodo, ChevronDown, Wallet, BookOpen, Plus, MoreHorizontal, Trash2, ArrowDownUp, Calendar as CalendarIcon } from 'lucide-react';
 import Footer from '@/components/organisms/footer';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
@@ -18,12 +17,15 @@ import type { Transaction } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { format } from 'date-fns';
+import { id } from 'date-fns/locale';
 
 type FilterRange = 'this-month' | 'last-month' | 'last-7-days' | 'all';
 
 const defaultCategories = {
-  expense: ['Makanan', 'Transportasi', 'Tagihan', 'Hiburan', 'Belanja', 'Kesehatan', 'Lainnya'],
+  expense: ['Makanan', 'Transportasi', 'Tagihan', 'Hiburan', 'Belanja', 'Kesehatan', 'Pendidikan', 'Lainnya'],
   income: ['Gaji', 'Bonus', 'Investasi', 'Hadiah', 'Pekerjaan Sampingan', 'Lainnya'],
 };
 
@@ -80,10 +82,12 @@ export default function FinancePage() {
   };
 
   const handleDeleteTransaction = (transactionId: string) => {
+    const deletedTx = transactions.find(t => t.id === transactionId);
     setTransactions(prev => prev.filter(t => t.id !== transactionId));
     setEditingTransaction(null);
      toast({
-      title: "Transaksi Dihapus!",
+      title: `Transaksi Dihapus!`,
+      description: `"${deletedTx?.description}" telah dihapus dari catatan.`,
       variant: "destructive"
     });
   }
@@ -364,7 +368,7 @@ export default function FinancePage() {
                                                                 <Pencil className="mr-2 h-4 w-4" />
                                                                 <span>Ubah</span>
                                                             </DropdownMenuItem>
-                                                            <DropdownMenuItem onSelect={() => handleDeleteTransaction(tx.id)} className="text-red-500">
+                                                            <DropdownMenuItem onSelect={() => handleDeleteTransaction(tx.id)} className="text-red-500 focus:text-red-500 focus:bg-red-50">
                                                                 <Trash2 className="mr-2 h-4 w-4" />
                                                                 <span>Hapus</span>
                                                             </DropdownMenuItem>
@@ -411,13 +415,14 @@ function AddTransactionForm({ onAddTransaction }: AddTransactionFormProps) {
     const [type, setType] = useState<'income' | 'expense'>('expense');
     const [category, setCategory] = useState('');
     const [customCategory, setCustomCategory] = useState('');
+    const [date, setDate] = useState<Date | undefined>(new Date());
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (!description || !amount || (!category && !customCategory) ) return;
+        if (!description || !amount || (!category && !customCategory) || !date) return;
         
         onAddTransaction({
-            date: new Date().toISOString().split('T')[0],
+            date: format(date, 'yyyy-MM-dd'),
             description,
             amount: parseFloat(amount),
             type,
@@ -428,6 +433,7 @@ function AddTransactionForm({ onAddTransaction }: AddTransactionFormProps) {
         setAmount('');
         setCategory('');
         setCustomCategory('');
+        setDate(new Date());
     };
 
     const categories = type === 'income' ? defaultCategories.income : defaultCategories.expense;
@@ -447,7 +453,7 @@ function AddTransactionForm({ onAddTransaction }: AddTransactionFormProps) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                     <label htmlFor="type">Jenis</label>
-                    <Select value={type} onValueChange={(v: 'income' | 'expense') => setType(v)}>
+                    <Select value={type} onValueChange={(v: 'income' | 'expense') => { setType(v); setCategory(''); }}>
                         <SelectTrigger id="type">
                             <SelectValue placeholder="Pilih jenis transaksi" />
                         </SelectTrigger>
@@ -458,7 +464,8 @@ function AddTransactionForm({ onAddTransaction }: AddTransactionFormProps) {
                     </Select>
                 </div>
                 <div className="space-y-2">
-                    <label htmlFor="category">Kategori</label>                     <Select value={category} onValueChange={setCategory}>
+                    <label htmlFor="category">Kategori</label>
+                     <Select value={category} onValueChange={setCategory}>
                         <SelectTrigger id="category">
                             <SelectValue placeholder="Pilih kategori" />
                         </SelectTrigger>
@@ -468,16 +475,45 @@ function AddTransactionForm({ onAddTransaction }: AddTransactionFormProps) {
                     </Select>
                 </div>
             </div>
-             {category === 'Lainnya' && (
+            {category === 'Lainnya' && (
                 <div className="space-y-2">
                     <label htmlFor="custom-category">Kategori Lainnya</label>
                     <Input id="custom-category" value={customCategory} onChange={e => setCustomCategory(e.target.value)} placeholder="Tulis kategori Anda" required />
                 </div>
             )}
-            <Button type="submit" className="w-full md:w-auto">
-                <Plus className="mr-2 h-4 w-4" />
-                Tambah Transaksi
-            </Button>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                     <label htmlFor="date">Tanggal</label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant={"outline"}
+                            className={cn(
+                              "w-full justify-start text-left font-normal",
+                              !date && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {date ? format(date, "PPP", { locale: id }) : <span>Pilih tanggal</span>}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0">
+                          <Calendar
+                            mode="single"
+                            selected={date}
+                            onSelect={setDate}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                </div>
+                <div className="flex items-end">
+                    <Button type="submit" className="w-full">
+                        <Plus className="mr-2 h-4 w-4" />
+                        Tambah Transaksi
+                    </Button>
+                </div>
+            </div>
         </form>
     );
 }
@@ -494,15 +530,28 @@ function EditTransactionDialog({ transaction, onUpdate, onClose }: EditTransacti
   const [amount, setAmount] = useState(String(transaction.amount));
   const [type, setType] = useState(transaction.type);
   const [category, setCategory] = useState(transaction.category);
+  const [customCategory, setCustomCategory] = useState('');
+  const [date, setDate] = useState<Date | undefined>(new Date(transaction.date));
   
+  // Set initial custom category if applicable
+  useEffect(() => {
+    const allCategories = [...defaultCategories.expense, ...defaultCategories.income];
+    if (!allCategories.includes(transaction.category)) {
+      setCategory('Lainnya');
+      setCustomCategory(transaction.category);
+    }
+  }, [transaction.category]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if(!date) return;
     onUpdate({
         ...transaction,
         description,
         amount: parseFloat(amount),
         type,
-        category,
+        category: customCategory || category,
+        date: format(date, 'yyyy-MM-dd')
     });
   };
 
@@ -526,7 +575,7 @@ function EditTransactionDialog({ transaction, onUpdate, onClose }: EditTransacti
             </div>
             <div className="space-y-2">
               <label htmlFor="edit-type">Jenis</label>
-              <Select value={type} onValueChange={(v: 'income' | 'expense') => setType(v)}>
+              <Select value={type} onValueChange={(v: 'income' | 'expense') => { setType(v); setCategory(''); }}>
                 <SelectTrigger id="edit-type">
                     <SelectValue />
                 </SelectTrigger>
@@ -538,7 +587,45 @@ function EditTransactionDialog({ transaction, onUpdate, onClose }: EditTransacti
             </div>
             <div className="space-y-2">
                 <label htmlFor="edit-category">Kategori</label>
-                <Input id="edit-category" value={category} onChange={(e) => setCategory(e.target.value)} placeholder="misal: Makanan" required />
+                 <Select value={category} onValueChange={setCategory}>
+                    <SelectTrigger id="edit-category">
+                        <SelectValue placeholder="Pilih kategori" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {categories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                    </SelectContent>
+                </Select>
+            </div>
+             {category === 'Lainnya' && (
+                <div className="space-y-2">
+                    <label htmlFor="edit-custom-category">Kategori Lainnya</label>
+                    <Input id="edit-custom-category" value={customCategory} onChange={e => setCustomCategory(e.target.value)} placeholder="Tulis kategori Anda" required />
+                </div>
+            )}
+             <div className="space-y-2">
+                 <label htmlFor="date">Tanggal</label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !date && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {date ? format(date, "PPP", { locale: id }) : <span>Pilih tanggal</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={date}
+                        onSelect={setDate}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
             </div>
           </div>
           <DialogFooter>
@@ -550,5 +637,3 @@ function EditTransactionDialog({ transaction, onUpdate, onClose }: EditTransacti
     </Dialog>
   );
 }
-
-    
