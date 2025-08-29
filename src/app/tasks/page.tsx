@@ -39,6 +39,7 @@ export default function TasksPage() {
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [movedTaskId, setMovedTaskId] = useState<string | null>(null);
   const [isActivityOpen, setIsActivityOpen] = useState(true);
+  const [isFinanceOpen, setIsFinanceOpen] = useState(false);
   const [isLearningOpen, setIsLearningOpen] = useState(false);
 
   useEffect(() => {
@@ -163,12 +164,33 @@ export default function TasksPage() {
                 </div>
               </CollapsibleContent>
             </Collapsible>
-             <SidebarMenuItem>
-              <SidebarMenuButton href="/finance">
-                <Wallet />
-                <span>Keuangan</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
+            <Collapsible open={isFinanceOpen} onOpenChange={setIsFinanceOpen}>
+              <CollapsibleTrigger className="w-full">
+                <div className="flex items-center justify-between p-2 rounded-md hover:bg-sidebar-accent">
+                  <div className="flex items-center gap-4">
+                    <Wallet />
+                    <span className="font-semibold">Keuangan</span>
+                  </div>
+                  <ChevronDown className={cn("h-5 w-5 transition-transform", isFinanceOpen && "rotate-180")} />
+                </div>
+              </CollapsibleTrigger>
+              <CollapsibleContent>
+                <div className="pl-6 mt-2 space-y-1">
+                  <SidebarMenuItem>
+                    <SidebarMenuButton href="/finance" variant="outline" size="sm">
+                      <ListTodo />
+                      <span>Money Stream</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton href="/finance/reports" variant="outline" size="sm">
+                      <BarChart3 />
+                      <span>Laporan Keuangan</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
             <Collapsible open={isLearningOpen} onOpenChange={setIsLearningOpen}>
               <CollapsibleTrigger className="w-full">
                 <div className="flex items-center justify-between p-2 rounded-md hover:bg-sidebar-accent">

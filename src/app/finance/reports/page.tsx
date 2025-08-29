@@ -10,7 +10,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-export default function FinancePage() {
+export default function FinanceReportsPage() {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isActivityOpen, setIsActivityOpen] = useState(false);
@@ -86,13 +86,13 @@ export default function FinancePage() {
               <CollapsibleContent>
                 <div className="pl-6 mt-2 space-y-1">
                   <SidebarMenuItem>
-                    <SidebarMenuButton href="/finance" variant="outline" size="sm" isActive>
+                    <SidebarMenuButton href="/finance" variant="outline" size="sm">
                       <ListTodo />
                       <span>Money Stream</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                   <SidebarMenuItem>
-                    <SidebarMenuButton href="/finance/reports" variant="outline" size="sm">
+                    <SidebarMenuButton href="/finance/reports" variant="outline" size="sm" isActive>
                       <BarChart3 />
                       <span>Laporan Keuangan</span>
                     </SidebarMenuButton>
@@ -143,7 +143,7 @@ export default function FinancePage() {
                 <div className="flex items-center justify-between h-16">
                     <div className="flex items-center gap-4">
                         <SidebarTrigger className="md:hidden" />
-                        <h1 className="text-xl font-bold">Money Stream</h1>
+                        <h1 className="text-xl font-bold">Laporan Keuangan</h1>
                     </div>
                      <div className="hidden md:flex items-center gap-4">
                         <SidebarTrigger />
@@ -154,10 +154,10 @@ export default function FinancePage() {
           <main className="flex-1 w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <Card>
                 <CardHeader>
-                    <CardTitle>Segera Hadir: Lacak Arus Uang Anda</CardTitle>
+                    <CardTitle>Segera Hadir: Laporan Keuangan Anda</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <p className="text-muted-foreground">Fitur untuk mencatat semua pemasukan dan pengeluaran Anda dari berbagai sumber sedang dalam pengembangan. Nantikan pembaruan selanjutnya!</p>
+                    <p className="text-muted-foreground">Fitur untuk menganalisis dan merangkum kondisi keuangan Anda sedang dalam pengembangan. Nantikan pembaruan selanjutnya!</p>
                 </CardContent>
             </Card>
           </main>
